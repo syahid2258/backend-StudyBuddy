@@ -1,0 +1,341 @@
+{{ define "exam.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - Ujian Akhir</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { 
+            background-color: #f5f7fa; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+        }
+        .mobile-container {
+            max-width: 800px; /* Sesuai dengan React version yang menggunakan max-width 800px */
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #f5f7fa;
+            position: relative;
+            padding-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+        }
+        .bg-brand { background-color: #02237D !important; }
+        .text-brand { color: #02237D !important; }
+
+        .card-custom {
+            border: none;
+            border-radius: 12px;
+            background-color: #ffffff;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        /* Score Circle */
+        .score-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto 1rem auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .score-good { background-color: #22c55e; }
+        .score-bad { background-color: #ef4444; }
+
+        .form-check-input:checked {
+            background-color: #02237D;
+            border-color: #02237D;
+        }
+
+        .btn-brand {
+            background-color: #02237D;
+            color: white;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-brand:hover, .btn-brand:focus {
+            background-color: #1e3a8a;
+            color: white;
+        }
+        .btn-brand:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Loading Spinner Animation */
+        .spinner-grow {
+            width: 3rem;
+            height: 3rem;
+            color: #02237D;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container shadow-sm">
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between text-white py-3 px-4 shadow-sm bg-brand sticky-top">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-arrow-left fs-5" style="cursor: pointer;" onclick="history.back()"></i>
+                <span class="fw-semibold fs-5 text-truncate">Ujian Akhir</span>
+            </div>
+            <div class="bg-warning text-dark px-3 py-1 rounded-pill fw-bold flex-shrink-0 d-flex align-items-center gap-1" style="font-size: 0.85rem;">
+                <i class="bi bi-clock-fill"></i> <span id="timerDisplay">00:00</span>
+            </div>
+        </div>
+
+        <div class="container mt-4">
+            
+            <!-- Alert Error -->
+            <div id="errorAlert" class="alert alert-danger d-none" role="alert"></div>
+
+            <!-- VIEW 1: SETUP -->
+            <div id="viewSetup">
+                <div class="card-custom text-center py-5">
+                    <h5 class="fw-bold text-dark mb-2">Ujian Akhir Topik</h5>
+                    <p class="text-secondary mb-4">{{ if .project }}{{ .project.Title }}{{ end }}</p>
+                    
+                    {{ if eq .questionsJSON "[]" }}
+                        <div class="alert alert-warning">Soal ujian belum tersedia untuk topik ini. Silakan minta Admin AI untuk menyusun soal ujian.</div>
+                    {{ else }}
+                        <button id="btnGenerate" class="btn btn-brand w-100 py-3" onclick="startExam()">
+                            Mulai Ujian
+                        </button>
+                    {{ end }}
+                </div>
+            </div>
+
+            <!-- VIEW LOADING -->
+            <div id="viewLoading" class="d-none text-center py-5 mt-4">
+                <div class="spinner-grow mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="fw-bold text-dark" id="loadingText">AI sedang menyusun soal...</h5>
+            </div>
+
+            <!-- VIEW 2: TEST -->
+            <div id="viewTest" class="d-none">
+                <div id="questionsContainer">
+                    <!-- Soal-soal akan di-inject ke sini oleh JavaScript -->
+                </div>
+
+                <button id="btnSubmit" class="btn btn-brand w-100 py-3 mb-4" onclick="handleSubmit()">
+                    Selesai & Kumpulkan
+                </button>
+            </div>
+
+            <!-- VIEW 3: RESULT -->
+            <div id="viewResult" class="d-none">
+                <div class="card-custom text-center py-5">
+                    <div id="scoreCircle" class="score-circle score-good">
+                        100
+                    </div>
+                    
+                    <p id="analysisText" class="mb-4 text-secondary" style="font-size: 0.95rem; line-height: 1.5;">
+                        <!-- Analisis hasil ujian akan muncul di sini -->
+                    </p>
+
+                    <div class="d-flex flex-column gap-2 px-3">
+                        <button id="btnRetake" class="btn btn-outline-primary py-2 fw-semibold" style="border-radius: 10px;" onclick="handleRetake()">
+                            Generate Soal Baru
+                        </button>
+                        <button class="btn btn-brand py-2" onclick="window.location.href='/modules'">
+                            Kembali ke Rute Belajar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Hidden element to safely pass JSON from Go html/template to Javascript -->
+    <div id="examDataContainer" class="d-none" data-questions="{{ if .questionsJSON }}{{ .questionsJSON }}{{ else }}[]{{ end }}"></div>
+
+    <script>
+        // DOM Elements
+        const views = {
+            setup: document.getElementById('viewSetup'),
+            loading: document.getElementById('viewLoading'),
+            test: document.getElementById('viewTest'),
+            result: document.getElementById('viewResult')
+        };
+        const errorAlert = document.getElementById('errorAlert');
+        const loadingText = document.getElementById('loadingText');
+        
+        // State
+        let currentQuestions = [];
+        let answers = {};
+        let timerInterval = null;
+        let secondsElapsed = 0;
+
+        // Utility: Show Specific View
+        function showView(viewName) {
+            Object.values(views).forEach(v => v.classList.add('d-none'));
+            views[viewName].classList.remove('d-none');
+        }
+
+        // Utility: Show Error
+        function showError(msg) {
+            errorAlert.textContent = msg;
+            errorAlert.classList.remove('d-none');
+            setTimeout(() => errorAlert.classList.add('d-none'), 5000);
+        }
+
+        // Exam State from Backend
+        const examId = {{ if .exam }}{{ .exam.ID }}{{ else }}0{{ end }};
+        
+        let rawQuestions = [];
+        try {
+            const container = document.getElementById('examDataContainer');
+            const dataStr = container ? container.getAttribute('data-questions') : "[]";
+            rawQuestions = JSON.parse(dataStr);
+        } catch (e) {
+            console.error("Gagal membaca soal:", e);
+        }
+        
+        // 1. ACTION: Start Exam
+        function startExam() {
+            currentQuestions = rawQuestions;
+            if (!currentQuestions || currentQuestions.length === 0) {
+                showError("Tidak ada soal tersedia.");
+                return;
+            }
+            
+            answers = {};
+            renderQuestions();
+            showView('test');
+            
+            // Mulai Timer
+            secondsElapsed = 0;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // 2. RENDER: Tampilkan Soal ke HTML
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            currentQuestions.forEach((q, index) => {
+                let inputHtml = '';
+
+                if (q.type === 'multiple_choice') {
+                    q.options.forEach((opt, optIndex) => {
+                        const inputId = `${q.id}_opt_${optIndex}`;
+                        inputHtml += `
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="${q.id}" id="${inputId}" value="${opt}" onchange="saveAnswer('${q.id}', this.value)">
+                                <label class="form-check-label text-secondary" for="${inputId}" style="font-size: 0.95rem;">
+                                    ${opt}
+                                </label>
+                            </div>
+                        `;
+                    });
+                } else {
+                    inputHtml = `
+                        <textarea class="form-control" rows="3" placeholder="Tulis jawabanmu di sini..." oninput="saveAnswer('${q.id}', this.value)"></textarea>
+                    `;
+                }
+
+                const cardHtml = `
+                    <div class="card-custom">
+                        <div class="fw-bold mb-3 text-dark" style="font-size: 1rem;">
+                            ${index + 1}. ${q.question}
+                        </div>
+                        ${inputHtml}
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // 3. LOGIC: Simpan Jawaban Sementara
+        function saveAnswer(questionId, value) {
+            answers[questionId] = value;
+        }
+
+        // 4. ACTION: Submit Ujian
+        async function handleSubmit() {
+            loadingText.textContent = "AI sedang menilai jawabanmu...";
+            showView('loading');
+            clearInterval(timerInterval); // Hentikan timer
+
+            // Susun payload
+            const payload = {
+                answers: Object.entries(answers).map(([question_id, answer]) => ({ question_id, answer }))
+            };
+
+            try {
+                const response = await fetch(`/api/exams/${examId}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Gagal mengirim ujian, silakan coba lagi.");
+                }
+
+                const data = await response.json();
+                
+                let score = data.final_score !== undefined ? data.final_score : (data.data && data.data.final_score);
+                let analysis = data.analysis !== undefined ? data.analysis : (data.data && data.data.analysis);
+                let can_retake = data.can_retake !== undefined ? data.can_retake : (data.data && data.data.can_retake);
+
+                // Render Result UI
+                const scoreCircle = document.getElementById('scoreCircle');
+                scoreCircle.textContent = score || 0;
+                
+                if (score >= 70) {
+                    scoreCircle.className = 'score-circle score-good';
+                } else {
+                    scoreCircle.className = 'score-circle score-bad';
+                }
+
+                document.getElementById('analysisText').textContent = analysis || "Tidak ada analisis.";
+
+                const btnRetake = document.getElementById('btnRetake');
+                if (can_retake) {
+                    btnRetake.classList.remove('d-none');
+                } else {
+                    btnRetake.classList.add('d-none');
+                }
+
+                showView('result');
+            } catch (err) {
+                showError(err.message);
+                showView('test'); // back to test
+            }
+        }
+
+        // 5. ACTION: Ulangi Ujian (Retake)
+        function handleRetake() {
+            window.location.reload();
+        }
+
+        // 6. UTILITY: Timer Stopwatch
+        function updateTimer() {
+            secondsElapsed++;
+            const m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+            const s = String(secondsElapsed % 60).padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+        }
+    </script>
+</body>
+</html>
+{{ end }}

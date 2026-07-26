@@ -1,0 +1,553 @@
+{{ define "tanyaAI.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - Tanya AI</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { 
+            background-color: #f8fafc; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; 
+        }
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            height: 100vh;
+            background-color: #f8fafc;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            overflow: hidden; /* Mencegah scroll bocor */
+        }
+        .bg-brand { background-color: #02237D !important; }
+        .text-brand { color: #02237D !important; }
+        
+        /* Chat Area */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 1rem;
+            padding-bottom: 90px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Date Badge */
+        .date-badge-wrapper {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .date-badge {
+            background-color: #e2e8f0;
+            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 16px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Bubble Chat Styles */
+        .msg-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+        .msg-wrapper.user { align-items: flex-end; }
+        .msg-wrapper.ai { align-items: flex-start; }
+
+        .msg-bubble {
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+        .msg-bubble.user {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            border-radius: 12px 12px 0 12px;
+        }
+        .msg-bubble.ai {
+            background-color: #ffffff;
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+            border-radius: 0 12px 12px 12px;
+        }
+
+        .ai-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 4px;
+            margin-left: 4px;
+        }
+        .msg-time {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .code-inline {
+            background-color: #eef2fa;
+            color: #02237D;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        /* Input Bar */
+        .input-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 12px 16px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1020;
+        }
+        
+        .action-icon {
+            font-size: 1.4rem;
+            color: #475569;
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 5px;
+        }
+        .action-icon:hover { color: #02237D; }
+        
+        /* Rotasi icon plus saat aktif */
+        .action-icon.rotate {
+            transform: rotate(45deg);
+            color: #dc3545;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .chat-input:focus { border-color: #02237D; }
+
+        .btn-send {
+            background-color: #02237D;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-send:hover { background-color: #1e3a8a; }
+        .btn-send:disabled { background-color: #94a3b8; cursor: not-allowed; }
+
+        /* Attachment Menu (Mirip WhatsApp) */
+        .attachment-menu {
+            position: absolute;
+            bottom: 75px; /* Muncul tepat di atas input bar */
+            left: 16px;
+            right: 16px;
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            z-index: 1010;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            border: 1px solid #e2e8f0;
+        }
+        .attachment-menu.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .attach-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .attach-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .attach-item:hover .attach-icon {
+            transform: scale(1.05);
+        }
+        .attach-item span {
+            font-size: 0.8rem;
+            color: #475569;
+            font-weight: 600;
+        }
+        /* Warna latar ikon */
+        .bg-doc { background: linear-gradient(135deg, #5c6bc0, #3f51b5); }
+        .bg-img { background: linear-gradient(135deg, #ab47bc, #8e24aa); }
+        .bg-cam { background: linear-gradient(135deg, #ef5350, #e53935); }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 4px 8px;
+        }
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #94a3b8;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between text-white p-3 shadow-sm bg-brand">
+            <i class="bi bi-arrow-left fs-4" style="cursor: pointer;" onclick="history.back()"></i>
+            <h5 class="mb-0 fw-semibold fs-5 text-center flex-grow-1">Tanya AI</h5>
+            <div class="bg-warning text-dark fw-bold px-2 py-1 rounded-pill d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+                <i class="bi bi-clock"></i> 00:00
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-container" id="chatBox">
+            <div class="date-badge-wrapper">
+                <span class="date-badge">Today</span>
+            </div>
+            <!-- Pesan akan muncul di sini secara dinamis -->
+        </div>
+
+        <!-- Attachment Pop-up Menu -->
+        <div id="attachmentMenu" class="attachment-menu">
+            <!-- 1. Opsi File Dokumen -->
+            <div class="attach-item" onclick="triggerInput('inputFile')">
+                <div class="attach-icon bg-doc"><i class="bi bi-file-earmark-text"></i></div>
+                <span>Dokumen</span>
+            </div>
+            <!-- 2. Opsi Gambar/Galeri -->
+            <div class="attach-item" onclick="triggerInput('inputImage')">
+                <div class="attach-icon bg-img"><i class="bi bi-image"></i></div>
+                <span>Galeri</span>
+            </div>
+            <!-- 3. Opsi Kamera (Otomatis membuka kamera HP) -->
+            <div class="attach-item" onclick="triggerInput('inputCamera')">
+                <div class="attach-icon bg-cam"><i class="bi bi-camera"></i></div>
+                <span>Kamera</span>
+            </div>
+        </div>
+
+        <!-- Input Tersembunyi (Akan dipanggil oleh opsi menu di atas) -->
+        <input type="file" id="inputFile" class="d-none" accept=".pdf,.doc,.docx,.txt">
+        <input type="file" id="inputImage" class="d-none" accept="image/*">
+        <input type="file" id="inputCamera" class="d-none" accept="image/*" capture="environment">
+
+        <!-- Input Bar Bawah -->
+        <div class="input-bar shadow">
+            <i class="bi bi-plus-lg action-icon" id="plusBtn" style="transition: transform 0.3s;" onclick="toggleAttachmentMenu()"></i>
+            <i class="bi bi-mic action-icon"></i>
+            <input type="text" id="chatInput" class="chat-input" placeholder="Tanya soal materi ini..." onkeypress="handleEnter(event)">
+            <button id="sendBtn" class="btn-send shadow-sm" onclick="sendMessage()" disabled>
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Hidden element to safely pass JSON from Go html/template to Javascript -->
+    <div id="historyDataContainer" class="d-none" data-history="{{ if .historyJSON }}{{ .historyJSON }}{{ else }}[]{{ end }}"></div>
+
+    <!-- Script Logika -->
+    <script>
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatBox = document.getElementById('chatBox');
+        const attachmentMenu = document.getElementById('attachmentMenu');
+        const plusBtn = document.getElementById('plusBtn');
+
+        // Load History
+        const historyContainer = document.getElementById('historyDataContainer');
+        const historyStr = historyContainer ? historyContainer.getAttribute('data-history') : "[]";
+        let chatHistory = [];
+        try {
+            chatHistory = JSON.parse(historyStr);
+        } catch (e) {}
+
+        function renderHistory() {
+            if (!chatHistory || chatHistory.length === 0) return;
+            
+            chatHistory.forEach(req => {
+                let userMsg = "";
+                try {
+                    const p = JSON.parse(req.payload);
+                    userMsg = p.message || "";
+                } catch (e) { userMsg = req.payload; }
+                
+                if (userMsg) {
+                    const userHtml = `
+                        <div class="msg-wrapper user mt-2 fade-in">
+                            <div class="msg-bubble user shadow-sm">
+                                ${escapeHtml(userMsg)}
+                            </div>
+                        </div>
+                    `;
+                    chatBox.insertAdjacentHTML('beforeend', userHtml);
+                }
+
+                if (req.response) {
+                    const aiHtml = `
+                        <div class="msg-wrapper ai fade-in mt-2">
+                            <div class="ai-label">Tanya AI</div>
+                            <div class="msg-bubble ai shadow-sm">
+                                ${escapeHtml(req.response).replace(/\n/g, '<br>')}
+                            </div>
+                        </div>
+                    `;
+                    chatBox.insertAdjacentHTML('beforeend', aiHtml);
+                }
+            });
+            setTimeout(scrollToBottom, 100);
+        }
+
+        /* ---------------- LOGIKA ATTACHMENT MENU ---------------- */
+        
+        // Membuka/Menutup menu opsi upload
+        function toggleAttachmentMenu() {
+            attachmentMenu.classList.toggle('show');
+            plusBtn.classList.toggle('rotate'); // Memutar tombol + jadi x
+        }
+
+        // Menutup menu jika user klik di luar area menu
+        document.addEventListener('click', function(e) {
+            if (!attachmentMenu.contains(e.target) && !plusBtn.contains(e.target)) {
+                attachmentMenu.classList.remove('show');
+                plusBtn.classList.remove('rotate');
+            }
+        });
+
+        // Ment-trigger input file asli HTML
+        function triggerInput(inputId) {
+            document.getElementById(inputId).click();
+            toggleAttachmentMenu(); // Tutup menu setelah memilih
+        }
+
+        // Contoh simulasi membaca file jika dipilih (Hanya visual notifikasi)
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener('change', function(e) {
+                if(e.target.files.length > 0) {
+                    const fileName = e.target.files[0].name;
+                    // Kirim pesan otomatis berisi nama file
+                    chatInput.value = `Mengirim file: ${fileName}`;
+                    sendBtn.removeAttribute('disabled');
+                    sendMessage();
+                }
+            });
+        });
+
+
+        /* ---------------- LOGIKA CHAT & AI ---------------- */
+
+        chatInput.addEventListener('input', function() {
+            if (this.value.trim().length > 0) {
+                sendBtn.removeAttribute('disabled');
+            } else {
+                sendBtn.setAttribute('disabled', 'true');
+            }
+        });
+
+        function handleEnter(e) {
+            if (e.key === 'Enter' && chatInput.value.trim().length > 0) {
+                sendMessage();
+            }
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message === "") return;
+
+            const time = getCurrentTime();
+
+            // 1. Render Pesan User
+            const userHtml = `
+                <div class="msg-wrapper user mt-2 fade-in">
+                    <div class="msg-bubble user shadow-sm">
+                        ${escapeHtml(message)}
+                    </div>
+                    <div class="msg-time">
+                        ${time} <i class="bi bi-check2 text-secondary fs-6"></i>
+                    </div>
+                </div>
+            `;
+            chatBox.insertAdjacentHTML('beforeend', userHtml);
+            
+            chatInput.value = "";
+            sendBtn.setAttribute('disabled', 'true');
+            scrollToBottom();
+
+            // Tutup menu attachment jika sedang terbuka
+            attachmentMenu.classList.remove('show');
+            plusBtn.classList.remove('rotate');
+
+            // 2. Render Typing Indicator AI
+            const typingId = 'typing-' + Date.now();
+            const typingHtml = `
+                <div class="msg-wrapper ai mt-2 fade-in" id="${typingId}">
+                    <div class="ai-label">Tanya AI</div>
+                    <div class="msg-bubble ai shadow-sm">
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatBox.insertAdjacentHTML('beforeend', typingHtml);
+            scrollToBottom();
+
+            // 3. Kirim ke Backend API
+            try {
+                const res = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ message: message })
+                });
+
+                // Tunggu respons via WebSocket, tapi jika fetch error tampilkan error
+                if (!res.ok) {
+                    throw new Error("Server error");
+                }
+            } catch (err) {
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+
+                const errorHtml = `
+                    <div class="msg-wrapper ai fade-in">
+                        <div class="ai-label">Tanya AI</div>
+                        <div class="msg-bubble ai shadow-sm" style="border-color: #fca5a5; color: #dc2626;">
+                            <i class="bi bi-exclamation-circle me-1"></i>Gagal terhubung ke server. Periksa koneksi Anda.
+                        </div>
+                        <div class="msg-time">${getCurrentTime()}</div>
+                    </div>
+                `;
+                chatBox.insertAdjacentHTML('beforeend', errorHtml);
+                scrollToBottom();
+            }
+        }
+
+        // Setup WebSocket Listener for Tanya AI
+        const userId = "{{ if .user }}{{ .user.ID }}{{ else }}0{{ end }}"; // Dinamis berdasarkan sesi user
+        const subTopicId = "global"; // Untuk chat umum
+        
+        let ws;
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws?user_id=${userId}&sub_topic_id=${subTopicId}`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'tanya_ai') { // type from Admin controller (mapped appropriately)
+                    // Hapus elemen typing indicator kalau masih ada
+                    const typingEls = document.querySelectorAll('.typing-indicator');
+                    typingEls.forEach(el => {
+                        const wrapper = el.closest('.msg-wrapper');
+                        if (wrapper) wrapper.remove();
+                    });
+
+                    const aiHtml = `
+                        <div class="msg-wrapper ai fade-in mt-2">
+                            <div class="ai-label">Tanya AI (Admin)</div>
+                            <div class="msg-bubble ai shadow-sm">
+                                ${escapeHtml(data.message).replace(/\n/g, '<br>')}
+                            </div>
+                            <div class="msg-time">${getCurrentTime()}</div>
+                        </div>
+                    `;
+                    chatBox.insertAdjacentHTML('beforeend', aiHtml);
+                    scrollToBottom();
+                }
+            };
+            
+            ws.onclose = function(e) {
+                setTimeout(function() {
+                    connectWebSocket();
+                }, 1000);
+            };
+        }
+        connectWebSocket();
+        renderHistory();
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
+{{ end }}

@@ -1,0 +1,32 @@
+.idea
+.vscode
+.DS_Store
+.env
+.env.*
+!.env.example
+storage
+tmp
+node_modules/
+dist/
+
+# Go binaries (FINDING-019 FIX: never commit compiled binaries)
+main
+main.exe
+*.exe
+goravel
+goravel.exe
+tmp_*
+
+# Databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Debug / test files (FINDING-020 FIX)
+test_ws.html
+*.pem
+*.key
+*.crt
+
+# Secrets
+*.secret

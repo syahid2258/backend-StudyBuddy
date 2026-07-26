@@ -1,0 +1,375 @@
+{{ define "materi.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - Materi</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { 
+            background-color: #f4f6fa; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; 
+        }
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #ffffff;
+            position: relative;
+            padding-bottom: 140px; /* Diperbesar karena ada dua tombol */
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        }
+        .bg-brand { background-color: #02237D !important; }
+        .text-brand { color: #02237D !important; }
+        
+        .term-highlight {
+            background-color: #eef2fa;
+            color: #02237D;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .overview-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #02237D;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .analogy-box {
+            background-color: #fbeae5;
+            border-left: 4px solid #d97757;
+            border-radius: 0 8px 8px 0;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+        }
+        .analogy-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #8c3a21;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .analogy-text {
+            color: #8c3a21;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .extra-content-box {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        /* Progress List (Hamburger Menu) */
+        .progress-list-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .progress-list-item.completed { color: #475569; }
+        .progress-list-item.active {
+            background-color: #f1f5f9;
+            border-left: 4px solid #02237D;
+            color: #02237D;
+            font-weight: 600;
+        }
+        .progress-list-item.locked {
+            color: #94a3b8;
+            pointer-events: none;
+        }
+        .icon-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+        .completed .icon-circle { background-color: #02237D; color: white; }
+        .active .icon-circle { background-color: transparent; color: #02237D; font-size: 1.2rem;}
+        .locked .icon-circle { background-color: transparent; color: #cbd5e1; font-size: 1.2rem;}
+
+        /* Bottom Fixed Actions */
+        .bottom-action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: linear-gradient(to top, rgba(255,255,255,1) 85%, rgba(255,255,255,0));
+            padding: 1rem 1.25rem 1.25rem;
+            z-index: 1020;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-quick-option {
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            color: #475569;
+            background: white;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.2s;
+        }
+        .btn-quick-option:hover, .btn-quick-option.active {
+            background: #eef2fa;
+            color: #02237D;
+            border-color: #02237D;
+        }
+
+        /* Loading Pulse Animation */
+        .pulse-icon { animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <!-- Top Navbar Sticky -->
+        <div class="d-flex align-items-center justify-content-between text-white p-3 shadow-sm bg-brand sticky-top">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-arrow-left fs-5" style="cursor: pointer;" onclick="history.back()"></i>
+                <span class="fw-semibold fs-5">Materi</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                 <div class="bg-warning text-dark fw-bold px-2 py-1 rounded-pill d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+                    <i class="bi bi-clock"></i> 00:00
+                </div>
+                <button onclick="window.location.href='/tanyaAI'" class="btn btn-light btn-sm rounded-pill fw-semibold text-brand d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+                    <i class="bi bi-send"></i> Tanya AI
+                </button>
+
+                <!-- Burger Menu untuk memunculkan Progress -->
+                <button class="btn btn-sm text-white border-0" data-bs-toggle="offcanvas" data-bs-target="#progressOffcanvas">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="p-4" id="materiContainer">
+            <h5 class="fw-bold mb-4" style="font-size: 1.1rem; letter-spacing: 0.5px;">
+                {{ if .project }}{{ .project.Title }}{{ else }}KONSEP DASAR BASIS DATA{{ end }}
+            </h5>
+
+            <!-- Overview Section -->
+            {{ if .activeModule }}
+                <div class="overview-box shadow-sm" id="mainMateriBox">
+                    <div class="section-title">{{ .activeModule.Title }}</div>
+                    {{ if .activeModule.ContentBlocks }}
+                        {{ range $block := .activeModule.ContentBlocks }}
+                            <p class="text-dark" style="font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap;">{{ $block.Text }}</p>
+                        {{ end }}
+                    {{ else }}
+                        <p class="text-dark">Materi sedang disusun...</p>
+                    {{ end }}
+                </div>
+            {{ else }}
+                <div class="overview-box shadow-sm" id="mainMateriBox">
+                    <div class="section-title">OVERVIEW</div>
+                    <p class="text-dark" style="font-size: 0.95rem; line-height: 1.6;">
+                        Materi belum tersedia. Silakan generate materi terlebih dahulu.
+                    </p>
+                </div>
+            {{ end }}
+        </div>
+
+        <!-- Bottom Fixed Action Bar -->
+        <div class="bottom-action-bar">
+            <!-- Tombol 1: Lanjut Active Recall -->
+            <button onclick="window.location.href='/active-recall?module_id={{ .activeModule.ID }}'" class="btn w-100 text-white py-3 shadow-sm bg-brand" style="border-radius: 8px; font-weight: 600;">
+                Saya Paham, Lanjut Active Recall <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+            
+            <!-- Tombol 2: Belum Mengerti (Membuka Bottom Sheet Feedback) -->
+            <button class="btn btn-light w-100 py-2 border text-secondary" style="border-radius: 8px; font-weight: 600;" data-bs-toggle="offcanvas" data-bs-target="#feedbackOffcanvas">
+                Saya belum ngerti, jelaskan ulang
+            </button>
+        </div>
+    </div>
+
+    <!-- 1. Offcanvas Hamburger Menu (Progress List) -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="progressOffcanvas" style="max-width: 320px;">
+        <div class="offcanvas-header bg-brand text-white">
+            <h6 class="offcanvas-title fw-bold">Rute Belajar</h6>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div class="px-3 py-3 bg-light border-bottom">
+                <div class="fw-bold text-secondary" style="font-size: 0.75rem; letter-spacing: 1px;">PROGRESS MATERI</div>
+            </div>
+            <div class="d-flex flex-column">
+                {{ if .modules }}
+                    {{ range $index, $mod := .modules }}
+                        {{ $isActive := false }}
+                        {{ if $.activeModule }}
+                            {{ if eq $mod.ID $.activeModule.ID }}
+                                {{ $isActive = true }}
+                            {{ end }}
+                        {{ end }}
+                        <a href="#" class="progress-list-item {{ if $isActive }}active{{ else }}locked{{ end }}">
+                            <div class="icon-circle">
+                                {{ if $isActive }}<i class="bi bi-bookmark-fill"></i>{{ else }}<i class="bi bi-lock"></i>{{ end }}
+                            </div>
+                            <span style="font-size: 0.95rem;">{{ $mod.Title }}</span>
+                        </a>
+                    {{ end }}
+                {{ else }}
+                    <a href="#" class="progress-list-item locked">
+                        <span style="font-size: 0.95rem;">Belum ada rute belajar</span>
+                    </a>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Offcanvas Bottom Sheet (Module Penjelasan Ulang) -->
+    <div class="offcanvas offcanvas-bottom rounded-top-4 shadow" tabindex="-1" id="feedbackOffcanvas" style="height: auto; max-width: 480px; margin: 0 auto;">
+        <div class="offcanvas-header pb-0 border-0">
+            <h6 class="fw-bold mb-0">Tinjauan Materi</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <p class="text-muted mb-3" style="font-size: 0.85rem;">Bagian mana yang membuatmu kesulitan? Pilih alasan di bawah atau ketik manual agar AI bisa menyesuaikan bahasanya.</p>
+            
+            <!-- Quick Options -->
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <button class="btn-quick-option" onclick="fillReason(this, 'Bahasa terlalu teknis dan kaku')">Terlalu Teknis</button>
+                <button class="btn-quick-option" onclick="fillReason(this, 'Materi terasa sangat berat dan panjang')">Materi Terlalu Berat</button>
+                <button class="btn-quick-option" onclick="fillReason(this, 'Saya butuh contoh dalam kehidupan sehari-hari')">Butuh Contoh Nyata</button>
+                <button class="btn-quick-option" onclick="fillReason(this, 'Kurang paham bagian DBMS')">Bagian DBMS</button>
+            </div>
+
+            <!-- Textarea -->
+            <textarea id="reasonTextarea" class="form-control mb-4" rows="3" placeholder="Tulis keluhanmu di sini..." style="resize: none; font-size: 0.9rem; border-radius: 8px;"></textarea>
+
+            <!-- Generate Ulang Action -->
+            <button onclick="startRegenerate()" class="btn w-100 text-white py-3 shadow-sm bg-brand" style="border-radius: 8px; font-weight: 600;">
+                <i class="bi bi-magic me-1"></i> Generate Ulang Materi
+            </button>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Setup WebSocket Listener
+        const userId = "{{ if .user }}{{ .user.ID }}{{ else }}0{{ end }}"; // Dinamis berdasarkan sesi user
+        // Ambil ID modul (sub_topic_id) dari template (activeModule)
+        const subTopicId = "{{ if .activeModule }}{{ .activeModule.ID }}{{ else }}0{{ end }}"; 
+        
+        let ws;
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws?user_id=${userId}&sub_topic_id=${subTopicId}`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'regenerate_subtopic') {
+                    // Update materi box natively by reloading page to reflect DB changes
+                    window.location.reload();
+                }
+            };
+            
+            ws.onclose = function(e) {
+                setTimeout(function() {
+                    connectWebSocket();
+                }, 1000);
+            };
+        }
+        connectWebSocket();
+
+        // Logika untuk mengisi Textarea dari opsi instan
+        function fillReason(btnEl, text) {
+            // Hapus class active dari semua tombol
+            document.querySelectorAll('.btn-quick-option').forEach(b => b.classList.remove('active'));
+            // Tambahkan ke tombol yang diklik
+            btnEl.classList.add('active');
+            // Isi form
+            document.getElementById('reasonTextarea').value = text;
+        }
+
+        // Logika Mengirim Request Regenerasi ke Admin (Wizard of Oz)
+        function startRegenerate() {
+            // Tutup Bottom Sheet
+            const feedbackOffcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('feedbackOffcanvas'));
+            feedbackOffcanvas.hide();
+
+            const reasonText = document.getElementById('reasonTextarea').value;
+
+            // Ubah konten utama menjadi status Loading AI
+            const materiBox = document.getElementById('mainMateriBox');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            materiBox.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-brand text-white rounded-4 mb-3 pulse-icon" style="width: 50px; height: 50px;">
+                        <i class="bi bi-person-workspace fs-3"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark">Request sedang dikirim ke Admin...</h6>
+                    <p class="text-muted" style="font-size: 0.85rem;">Mohon tunggu admin memproses permintaan Anda.</p>
+                </div>
+            `;
+
+            // Kirim ke backend
+            const formData = new FormData();
+            formData.append("reason", reasonText);
+
+            // Fetch ke endpoint regenerate (subTopicId = 123)
+            fetch('/api/modules/' + subTopicId + '/regenerate', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.text())
+            .then(data => {
+                console.log("Regenerate queued:", data);
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Gagal mengirim request.");
+            });
+        }
+    </script>
+</body>
+</html>
+{{ end }}

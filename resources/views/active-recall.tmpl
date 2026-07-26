@@ -1,0 +1,490 @@
+{{ define "active-recall.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - Active Recall</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { 
+            background-color: #f4f6fa; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; 
+        }
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #ffffff;
+            position: relative;
+            padding-bottom: 100px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        }
+        .bg-brand { background-color: #02237D !important; }
+        .text-brand { color: #02237D !important; }
+        
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .recall-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-box {
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        /* Mic Button Styles */
+        .mic-btn-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .mic-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background-color: #02237D;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(2, 35, 125, 0.2);
+        }
+        .mic-btn.recording {
+            background-color: #dc3545;
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
+        /* Result Section Styles */
+        .score-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .score-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #02237D;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #02237D;
+        }
+        
+        .eval-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.5rem 0;
+        }
+        .eval-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            color: #334155;
+            line-height: 1.4;
+        }
+        .eval-item i.text-success { font-size: 1.1rem; }
+        .eval-item i.text-warning { font-size: 1.1rem; }
+
+        .suggestion-box {
+            background-color: #eef2fa;
+            border: 1px solid #dbeafe;
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            gap: 12px;
+            color: #1e3a8a;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        /* Bottom Action Bar */
+        .bottom-action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: linear-gradient(to top, rgba(255,255,255,1) 85%, rgba(255,255,255,0));
+            padding: 1rem 1.25rem 1.25rem;
+            z-index: 1020;
+        }
+
+        /* Progress List (Hamburger Menu) - Identik dengan Halaman Materi */
+        .progress-list-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .progress-list-item.completed { color: #475569; }
+        .progress-list-item.active {
+            background-color: #f1f5f9;
+            border-left: 4px solid #02237D;
+            color: #02237D;
+            font-weight: 600;
+        }
+        .progress-list-item.locked {
+            color: #94a3b8;
+            pointer-events: none;
+        }
+        .icon-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+        .completed .icon-circle { background-color: #02237D; color: white; }
+        .active .icon-circle { background-color: transparent; color: #02237D; font-size: 1.2rem;}
+        .locked .icon-circle { background-color: transparent; color: #cbd5e1; font-size: 1.2rem;}
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between text-white p-3 shadow-sm bg-brand sticky-top">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-arrow-left fs-5" style="cursor: pointer;" onclick="history.back()"></i>
+                <span class="fw-semibold fs-5">Active Recall</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="bg-warning text-dark fw-bold px-2 py-1 rounded-pill d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+                    <i class="bi bi-clock"></i> 00:00
+                </div>
+                <button onclick="window.location.href='/tanyaAI'" class="btn btn-light btn-sm rounded-pill fw-semibold text-brand d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+                    <i class="bi bi-send"></i> Tanya AI
+                </button>
+
+                <!-- Burger Menu untuk memunculkan Progress -->
+                <button class="btn btn-sm text-white border-0" data-bs-toggle="offcanvas" data-bs-target="#progressOffcanvas">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="p-4">
+            <div class="section-title text-dark mb-3">{{ if .module }}{{ .module.Title }}{{ else }}KONSEP DASAR BASIS DATA{{ end }}</div>
+
+            <div class="recall-card shadow-sm">
+                <h6 class="text-brand fw-bold mb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">JELASKAN ULANG MATERI</h6>
+                <p class="text-secondary mb-3" style="font-size: 0.9rem;">Materi disembunyikan. Coba jelaskan konsep ini menggunakan kata-katamu sendiri, atau jawab studi kasus di bawah.</p>
+
+            <!-- Skeleton/Question Box -->
+            <div class="question-box shadow-sm">
+                {{ if and .activeRecall .activeRecall.Question }}{{ .activeRecall.Question }}{{ else }}Belum ada pertanyaan.{{ end }}
+            </div>
+
+                <!-- INPUT SECTION (Form & Mic) -->
+                <div id="inputSection">
+                    <div class="mic-btn-container">
+                        <button class="mic-btn" id="micBtn" onclick="toggleRecording()">
+                            <i class="bi bi-mic-fill"></i>
+                        </button>
+                        <span class="text-muted mt-2 fw-semibold" id="micStatusText" style="font-size: 0.85rem;">Tap to speak</span>
+                    </div>
+
+                    <div class="mb-2 text-muted" style="font-size: 0.8rem; font-weight: 600;">atau ketik/perbaiki jawabanmu:</div>
+                    <textarea id="answerTextarea" class="form-control bg-light shadow-sm" rows="5" placeholder="Ketik jawaban di sini..." style="resize: none; font-size: 0.95rem; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
+                </div>
+
+                <!-- RESULT SECTION (AI Evaluation - Hidden by default) -->
+                <div id="resultSection" class="d-none fade-in">
+                    <!-- Teks Jawaban Akhir (Read-only) -->
+                    <div class="p-3 bg-light rounded-3 mb-3 border text-secondary" style="font-size: 0.9rem; border-color: #cbd5e1 !important;" id="finalAnswerDisplay">
+                        <!-- Teks jawaban akan dipindahkan ke sini -->
+                    </div>
+
+                    <div class="score-container">
+                        <div class="score-circle">85%</div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-1">Pemahaman baik</h5>
+                            <p class="text-muted mb-0" style="font-size: 0.85rem;">Kamu sudah menangkap esensi utama dari konsep ini.</p>
+                        </div>
+                    </div>
+
+                    <ul class="eval-list">
+                        <li class="eval-item">
+                            <i class="bi bi-check-circle text-success mt-1"></i>
+                            <span>Menjelaskan perbedaan kapasitas antara penyimpanan file biasa (Excel) dengan sistem database.</span>
+                        </li>
+                        <li class="eval-item">
+                            <i class="bi bi-check-circle text-success mt-1"></i>
+                            <span>Menggunakan analogi yang sangat baik dan mudah dipahami.</span>
+                        </li>
+                        <li class="eval-item">
+                            <i class="bi bi-exclamation-triangle text-warning mt-1"></i>
+                            <span>Kurang menyebutkan peran DBMS dalam mencegah duplikasi data (redundansi).</span>
+                        </li>
+                    </ul>
+
+                    <div class="suggestion-box shadow-sm">
+                        <i class="bi bi-lightbulb fs-5"></i>
+                        <span>"Coba tambahkan penjelasan tentang bagaimana pustakawan (DBMS) mencegah adanya buku yang dicatat dua kali (reduplikasi) untuk jawaban yang lebih sempurna."</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Action Bar (Dinamic Buttons) -->
+        <div class="bottom-action-bar d-flex gap-2" id="actionButtons">
+            <!-- State 1: Input Actions -->
+            <button class="btn btn-light border w-50 fw-semibold text-secondary py-2 rounded-3 shadow-sm" onclick="history.back()">Baca ulang materi</button>
+            <button id="uploadBtn" class="btn bg-brand text-white w-50 fw-semibold py-2 rounded-3 shadow-sm" onclick="submitAnswer()">Upload Jawaban</button>
+        </div>
+    </div>
+
+
+    <!-- Offcanvas Hamburger Menu (Progress List Identik dengan Materi) -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="progressOffcanvas" style="max-width: 320px;">
+        <div class="offcanvas-header bg-brand text-white">
+            <h6 class="offcanvas-title fw-bold">Rute Belajar</h6>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div class="px-3 py-3 bg-light border-bottom">
+                <div class="fw-bold text-secondary" style="font-size: 0.75rem; letter-spacing: 1px;">PROGRESS MATERI</div>
+            </div>
+            <div class="d-flex flex-column">
+                <!-- Active Topic (Konsep Dasar Basis Data) -->
+                <a href="#" class="progress-list-item active">
+                    <div class="icon-circle"><i class="bi bi-bookmark-fill"></i></div>
+                    <span style="font-size: 0.95rem;">Konsep Dasar Basis Data</span>
+                </a>
+                
+                <!-- Locked Topics (Lanjutan dari Topik Basis Data) -->
+                <a href="#" class="progress-list-item locked">
+                    <div class="icon-circle"><i class="bi bi-lock"></i></div>
+                    <span style="font-size: 0.95rem;">Model Data Relasional</span>
+                </a>
+                <a href="#" class="progress-list-item locked">
+                    <div class="icon-circle"><i class="bi bi-lock"></i></div>
+                    <span style="font-size: 0.95rem;">Primary Key dan Foreign Key</span>
+                </a>
+                <a href="#" class="progress-list-item locked">
+                    <div class="icon-circle"><i class="bi bi-lock"></i></div>
+                    <span style="font-size: 0.95rem;">Normalisasi</span>
+                </a>
+                <a href="#" class="progress-list-item locked">
+                    <div class="icon-circle"><i class="bi bi-lock"></i></div>
+                    <span style="font-size: 0.95rem;">Entity Relationship Diagram</span>
+                </a>
+                <a href="#" class="progress-list-item locked">
+                    <div class="icon-circle"><i class="bi bi-lock"></i></div>
+                    <span style="font-size: 0.95rem;">Dasar SQL</span>
+                </a>
+                <a href="#" class="progress-list-item locked">
+                    <div class="icon-circle"><i class="bi bi-lock"></i></div>
+                    <span style="font-size: 0.95rem;">Integritas data dan constraint</span>
+                </a>
+                <a href="#" class="progress-list-item locked">
+                    <div class="icon-circle"><i class="bi bi-file-earmark-text"></i></div>
+                    <span style="font-size: 0.95rem;">Quiz Akhir</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script Logika Simulasi -> AJAX & WS -->
+    <script>
+        const micBtn = document.getElementById('micBtn');
+        const micStatusText = document.getElementById('micStatusText');
+        const textarea = document.getElementById('answerTextarea');
+        
+        const inputSection = document.getElementById('inputSection');
+        const resultSection = document.getElementById('resultSection');
+        const actionButtons = document.getElementById('actionButtons');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const finalAnswerDisplay = document.getElementById('finalAnswerDisplay');
+
+        const moduleId = {{ if .module }}{{ .module.ID }}{{ else }}0{{ end }};
+        const nextModuleId = {{ if .nextModule }}{{ .nextModule.ID }}{{ else }}0{{ end }};
+
+        let isRecording = false;
+
+        // Simulasi Perekaman Suara (Voice to Text)
+        function toggleRecording() {
+            if (!isRecording) {
+                // Start Recording
+                isRecording = true;
+                micBtn.classList.add('recording');
+                micBtn.innerHTML = '<i class="bi bi-mic-fill"></i>';
+                micStatusText.textContent = "Mendengarkan...";
+                micStatusText.classList.add('text-danger');
+                textarea.value = ""; // Clear existing text
+                
+                // Simulasi AI memproses suara selama 3 detik
+                setTimeout(() => {
+                    if(isRecording) stopRecording();
+                }, 3000);
+            } else {
+                stopRecording();
+            }
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+            micStatusText.textContent = "Tap to speak";
+            micStatusText.classList.remove('text-danger');
+            
+            // Masukkan teks simulasi ke textarea agar user bisa merevisi
+            textarea.value = "Basis data itu ibarat lemari besar yang teratur. Kalau Excel cuma kayak numpuk kertas di meja. DBMS itu pustakawannya yang ngatur lemari itu biar gampang dicari.";
+        }
+
+        async function submitAnswer() {
+            const answer = textarea.value.trim();
+            if (answer === "") {
+                alert("Silakan ketik atau rekam jawabanmu terlebih dahulu!");
+                return;
+            }
+
+            uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menilai AI...';
+            uploadBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/active-recall/${moduleId}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answer: answer })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Gagal mengirim jawaban");
+                }
+                
+                // Masuk ke mode menunggu WS
+                inputSection.classList.add('d-none');
+                finalAnswerDisplay.textContent = `"${answer}"`;
+                
+                // Kita tampilkan semacam loading placeholder atau biarkan kosong sampai WS merespon
+                resultSection.classList.remove('d-none');
+                resultSection.innerHTML = `
+                    <div class="text-center p-4">
+                        <div class="spinner-border text-brand mb-3" role="status"></div>
+                        <h6 class="text-muted">AI sedang menganalisis jawabanmu...</h6>
+                    </div>
+                `;
+
+            } catch (error) {
+                alert(error.message);
+                uploadBtn.innerHTML = 'Upload Jawaban';
+                uploadBtn.disabled = false;
+            }
+        }
+        
+        // Setup WebSocket untuk menerima hasil grading
+        const userId = {{ if .user }}{{ .user.ID }}{{ else }}0{{ end }};
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws?user_id=${userId}`;
+        const socket = new WebSocket(wsUrl);
+
+        socket.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === "active_recall_evaluated") {
+                    renderEvaluation(data);
+                }
+            } catch (e) {
+                console.error("Error parsing WS message", e);
+            }
+        };
+
+        function renderEvaluation(data) {
+            let evalHtml = '<ul class="eval-list">';
+            if (data.evaluations) {
+                data.evaluations.forEach(item => {
+                    const iconClass = item.is_success ? "bi-check-circle text-success" : "bi-exclamation-triangle text-warning";
+                    evalHtml += `
+                        <li class="eval-item">
+                            <i class="bi ${iconClass} mt-1"></i>
+                            <span>${item.text}</span>
+                        </li>
+                    `;
+                });
+            }
+            evalHtml += '</ul>';
+
+            let titleText = data.score >= 80 ? "Pemahaman baik" : "Pemahaman Cukup";
+            let subtitleText = data.score >= 80 ? "Kamu sudah menangkap esensi utama dari konsep ini." : "Masih ada beberapa konsep yang perlu dipertajam.";
+
+            resultSection.innerHTML = `
+                <div class="p-3 bg-light rounded-3 mb-3 border text-secondary" style="font-size: 0.9rem; border-color: #cbd5e1 !important;">
+                    "${textarea.value}"
+                </div>
+                <div class="score-container">
+                    <div class="score-circle">${data.score}%</div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">${titleText}</h5>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">${subtitleText}</p>
+                    </div>
+                </div>
+                ${evalHtml}
+                <div class="suggestion-box shadow-sm">
+                    <i class="bi bi-lightbulb fs-5"></i>
+                    <span>"${data.feedback}"</span>
+                </div>
+            `;
+
+            let nextBtnHtml = nextModuleId > 0 
+                ? `<button class="btn bg-brand text-white w-50 fw-semibold py-2 rounded-3 shadow-sm" onclick="window.location.href='/materi?project_id={{ if .module }}{{ .module.ProjectID }}{{ end }}&module_id=' + nextModuleId">Lanjut Silabus</button>`
+                : `<button class="btn bg-brand text-white w-50 fw-semibold py-2 rounded-3 shadow-sm" onclick="window.location.href='/exam?project_id={{ if .module }}{{ .module.ProjectID }}{{ end }}'">Lanjut Ujian</button>`;
+
+            actionButtons.innerHTML = `
+                <button class="btn btn-light border w-50 fw-semibold text-secondary py-2 rounded-3 shadow-sm" onclick="history.back()">Baca ulang materi</button>
+                ${nextBtnHtml}
+            `;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
+{{ end }}

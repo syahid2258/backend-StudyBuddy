@@ -1,0 +1,388 @@
+{{ define "admin-requests.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - AI Task Center</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { 
+            background-color: #f4f6fa; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        }
+        .admin-container { 
+            max-width: 650px; 
+            margin: 0 auto; 
+            min-height: 100vh; 
+            background: #ffffff; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+        }
+        .bg-brand { background-color: #02237D !important; }
+        .text-brand { color: #02237D !important; }
+
+        /* Nav Pills (Filter) */
+        .nav-pills .nav-link {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 20px;
+            padding: 6px 16px;
+            margin-right: 8px;
+            background-color: #f1f5f9;
+            transition: all 0.2s;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #02237D;
+            color: white;
+        }
+
+        /* Task Cards */
+        .task-card {
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-left: 5px solid #cbd5e1; /* Default border color */
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+        }
+
+        /* Tipe Request Colors */
+        .border-new { border-left-color: #3b82f6 !important; } /* Biru: Modul Baru */
+        .border-revise { border-left-color: #f59e0b !important; } /* Kuning: Revisi */
+        .border-grade { border-left-color: #10b981 !important; } /* Hijau: Penilaian */
+        .border-chat { border-left-color: #8b5cf6 !important; } /* Ungu: Chat */
+
+        .task-meta {
+            font-size: 0.8rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .task-content {
+            font-size: 0.95rem;
+            color: #1e293b;
+            background-color: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px dashed #cbd5e1;
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 6px 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container shadow-sm pb-5">
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between p-3 bg-brand text-white sticky-top shadow-sm">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-inboxes-fill fs-4"></i>
+                <div class="lh-1">
+                    <div class="fw-bold fs-6">TASK CENTER</div>
+                    <small style="font-size: 0.7rem; opacity: 0.8;">Admin: spid3r</small>
+                </div>
+            </div>
+            <div class="badge bg-danger shadow-sm d-flex align-items-center gap-1 rounded-pill px-3 py-2">
+                <span id="pendingCount">{{ .pendingCount }}</span> Tertunda
+            </div>
+        </div>
+
+        <div class="p-4">
+            <!-- Filter Nav -->
+            <div class="d-flex overflow-auto pb-2 mb-4" style="white-space: nowrap; scrollbar-width: none;">
+                <ul class="nav nav-pills d-flex flex-nowrap" id="requestFilter" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-filter="all">Semua</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-filter="new"><i class="bi bi-magic me-1"></i>Modul Baru</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-filter="revise"><i class="bi bi-arrow-repeat me-1"></i>Revisi</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-filter="grade"><i class="bi bi-check2-square me-1"></i>Penilaian</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-filter="chat"><i class="bi bi-chat-dots me-1"></i>Chat</button>
+                    </li>
+                </ul>
+            </div>
+
+            <div id="requestList">
+                {{ if not .requests }}
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-5">
+                    <i class="bi bi-cup-hot text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
+                    <h5 class="fw-bold text-dark mt-3">Semua Tugas Selesai!</h5>
+                    <p class="text-muted" style="font-size: 0.9rem;">Belum ada antrean *request* baru dari user saat ini.</p>
+                </div>
+                {{ else }}
+                {{ range .requests }}
+                {{ if eq .Type "generate_topic" }}
+                <div class="task-card border-new shadow-sm" data-category="new">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary mb-2 border border-primary-subtle" style="font-size: 0.7rem;">
+                                GENERATE MODUL & EXAM
+                            </span>
+                            <div class="task-meta">
+                                <span><i class="bi bi-person-circle me-1"></i> User: <strong>{{ if .User }}{{ .User.Name }}{{ else }}User #{{ .UserID }}{{ end }}</strong></span>
+                                <span><i class="bi bi-clock me-1"></i> {{ if .CreatedAt }}{{ .CreatedAt.Format "15:04" }}{{ else }}-{{ end }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-content" style="max-height: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <strong>Payload:</strong> {{ .Payload }}
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button class="btn btn-outline-secondary btn-action" onclick="ignoreTask(this, {{ .ID }})">Abaikan</button>
+                        <a href="/admin/ai?req_id={{ .ID }}" class="btn btn-primary btn-action shadow-sm"><i class="bi bi-play-fill me-1"></i> Kerjakan</a>
+                    </div>
+                </div>
+                {{ else if eq .Type "generate_exam" }}
+                <div class="task-card border-new shadow-sm" data-category="new">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary mb-2 border border-primary-subtle" style="font-size: 0.7rem;">
+                                GENERATE EXAM (FINAL STAGE)
+                            </span>
+                            <div class="task-meta">
+                                <span><i class="bi bi-person-circle me-1"></i> User: <strong>{{ if .User }}{{ .User.Name }}{{ else }}User #{{ .UserID }}{{ end }}</strong></span>
+                                <span><i class="bi bi-clock me-1"></i> {{ if .CreatedAt }}{{ .CreatedAt.Format "15:04" }}{{ else }}-{{ end }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-content" style="max-height: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <strong>Payload:</strong> {{ .Payload }}
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button class="btn btn-outline-secondary btn-action" onclick="ignoreTask(this, {{ .ID }})">Abaikan</button>
+                        <a href="/admin/exam?req_id={{ .ID }}" class="btn btn-primary btn-action shadow-sm"><i class="bi bi-play-fill me-1"></i> Kerjakan</a>
+                    </div>
+                </div>
+                {{ else if eq .Type "regenerate_subtopic" }}
+                <div class="task-card border-revise shadow-sm" data-category="revise">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge bg-warning bg-opacity-10 text-warning mb-2 border border-warning-subtle" style="font-size: 0.7rem;">
+                                REGENERATE MODUL
+                            </span>
+                            <div class="task-meta">
+                                <span><i class="bi bi-person-circle me-1"></i> User: <strong>{{ if .User }}{{ .User.Name }}{{ else }}User #{{ .UserID }}{{ end }}</strong></span>
+                                <span><i class="bi bi-clock me-1"></i> {{ if .CreatedAt }}{{ .CreatedAt.Format "15:04" }}{{ else }}-{{ end }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-content">
+                        <strong>Payload:</strong> {{ .Payload }}
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <a href="/admin/ai?req_id={{ .ID }}&type=regenerate" class="btn btn-warning text-dark btn-action shadow-sm"><i class="bi bi-pencil-square me-1"></i> Tulis Ulang</a>
+                    </div>
+                </div>
+                {{ else if eq .Type "exam_evaluation" }}
+                <div class="task-card border-grade shadow-sm" data-category="grade">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge bg-success bg-opacity-10 text-success mb-2 border border-success-subtle" style="font-size: 0.7rem;">
+                                EVALUASI JAWABAN
+                            </span>
+                            <div class="task-meta">
+                                <span><i class="bi bi-person-circle me-1"></i> User: <strong>{{ if .User }}{{ .User.Name }}{{ else }}User #{{ .UserID }}{{ end }}</strong></span>
+                                <span><i class="bi bi-clock me-1"></i> {{ if .CreatedAt }}{{ .CreatedAt.Format "15:04" }}{{ else }}-{{ end }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-content">
+                        <strong>Payload:</strong> {{ .Payload }}
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <a href="/admin/exam?req_id={{ .ID }}" class="btn btn-success btn-action shadow-sm"><i class="bi bi-check2-circle me-1"></i> Beri Nilai</a>
+                    </div>
+                </div>
+                {{ else if eq .Type "active_recall_evaluation" }}
+                <div class="task-card border-grade shadow-sm" data-category="grade">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge bg-success bg-opacity-10 text-success mb-2 border border-success-subtle" style="font-size: 0.7rem;">
+                                PENILAIAN ACTIVE RECALL
+                            </span>
+                            <div class="task-meta">
+                                <span><i class="bi bi-person-circle me-1"></i> User: <strong>{{ if .User }}{{ .User.Name }}{{ else }}User #{{ .UserID }}{{ end }}</strong></span>
+                                <span><i class="bi bi-clock me-1"></i> {{ if .CreatedAt }}{{ .CreatedAt.Format "15:04" }}{{ else }}-{{ end }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-content">
+                        <strong>Payload:</strong> {{ .Payload }}
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <a href="/admin/active-recall?req_id={{ .ID }}" class="btn btn-success btn-action shadow-sm"><i class="bi bi-check2-circle me-1"></i> Evaluasi AI</a>
+                    </div>
+                </div>
+                {{ else if eq .Type "chat" }}
+                <div class="task-card border-chat shadow-sm" data-category="chat">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge bg-purple bg-opacity-10 mb-2 border" style="font-size: 0.7rem; color: #8b5cf6; border-color: #ddd6fe !important; background-color: #f3e8ff;">
+                                TANYA AI (CHAT)
+                            </span>
+                            <div class="task-meta">
+                                <span><i class="bi bi-person-circle me-1"></i> User: <strong>{{ if .User }}{{ .User.Name }}{{ else }}User #{{ .UserID }}{{ end }}</strong></span>
+                                <span><i class="bi bi-clock me-1"></i> {{ if .CreatedAt }}{{ .CreatedAt.Format "15:04" }}{{ else }}-{{ end }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-content">
+                        <strong>Payload:</strong> {{ .Payload }}
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button class="btn btn-outline-secondary btn-action" onclick="ignoreTask(this, {{ .ID }})">Tandai Selesai</button>
+                        <a href="/admin/chat?req_id={{ .ID }}" class="btn btn-action text-white shadow-sm" style="background-color: #8b5cf6;"><i class="bi bi-reply-fill me-1"></i> Balas Chat</a>
+                    </div>
+                </div>
+                {{ else if eq .Type "tanya_ai" }}
+                <div class="task-card border-chat shadow-sm" data-category="chat">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge bg-purple bg-opacity-10 mb-2 border" style="font-size: 0.7rem; color: #8b5cf6; border-color: #ddd6fe !important; background-color: #f3e8ff;">
+                                TANYA AI (CHAT UMUM)
+                            </span>
+                            <div class="task-meta">
+                                <span><i class="bi bi-person-circle me-1"></i> User: <strong>{{ if .User }}{{ .User.Name }}{{ else }}User #{{ .UserID }}{{ end }}</strong></span>
+                                <span><i class="bi bi-clock me-1"></i> {{ if .CreatedAt }}{{ .CreatedAt.Format "15:04" }}{{ else }}-{{ end }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-content">
+                        <strong>Payload:</strong> {{ .Payload }}
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button class="btn btn-outline-secondary btn-action" onclick="ignoreTask(this, {{ .ID }})">Tandai Selesai</button>
+                        <a href="/admin/chat?req_id={{ .ID }}&type=tanya_ai" class="btn btn-action text-white shadow-sm" style="background-color: #8b5cf6;"><i class="bi bi-reply-fill me-1"></i> Balas Chat</a>
+                    </div>
+                </div>
+                {{ else if eq .Type "generate_flashcards" }}
+                <div class="task-card border-new shadow-sm" data-category="new">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary mb-2 border border-primary-subtle" style="font-size: 0.7rem;">
+                                GENERATE FLASHCARDS
+                            </span>
+                            <div class="task-meta">
+                                <span><i class="bi bi-person-circle me-1"></i> User: <strong>{{ if .User }}{{ .User.Name }}{{ else }}User #{{ .UserID }}{{ end }}</strong></span>
+                                <span><i class="bi bi-clock me-1"></i> {{ if .CreatedAt }}{{ .CreatedAt.Format "15:04" }}{{ else }}-{{ end }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-content">
+                        <strong>Payload:</strong> {{ .Payload }}
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <a href="/admin/flashcard?req_id={{ .ID }}" class="btn btn-primary btn-action shadow-sm"><i class="bi bi-magic me-1"></i> Buat Flashcard</a>
+                    </div>
+                </div>
+                {{ end }}
+                {{ end }}
+                {{ end }}
+
+                <!-- Empty State (Hidden by default when there are items) -->
+                <div id="emptyState" class="text-center py-5 d-none">
+                    <i class="bi bi-cup-hot text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
+                    <h5 class="fw-bold text-dark mt-3">Semua Tugas Selesai!</h5>
+                    <p class="text-muted" style="font-size: 0.9rem;">Belum ada antrean *request* baru dari user saat ini.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Filter Interaktif -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterButtons = document.querySelectorAll('#requestFilter .nav-link');
+            const taskCards = document.querySelectorAll('.task-card');
+            const emptyState = document.getElementById('emptyState');
+            const pendingCountEl = document.getElementById('pendingCount');
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Reset active class
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    const filterValue = button.getAttribute('data-filter');
+                    let visibleCount = 0;
+
+                    // Filter logic
+                    taskCards.forEach(card => {
+                        if (filterValue === 'all' || card.getAttribute('data-category') === filterValue) {
+                            card.style.display = 'block';
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+
+                    // Toggle Empty State
+                    if (visibleCount === 0) {
+                        emptyState.classList.remove('d-none');
+                    } else {
+                        emptyState.classList.add('d-none');
+                    }
+                });
+            });
+        });
+
+        // Simulasi Abaikan Tugas
+        function ignoreTask(btnEl) {
+            const card = btnEl.closest('.task-card');
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                card.remove();
+                updateCounter();
+            }, 300);
+        }
+
+        // Simulasi Beri Nilai
+        function showGradeModal() {
+            const nilai = prompt("Berikan skor 0-100 untuk jawaban Bima:");
+            const feedback = prompt("Tuliskan evaluasi/feedback singkat (Opsional):");
+            if (nilai) {
+                alert(`Nilai ${nilai} dan feedback berhasil dikirim ke layar Bima!`);
+                ignoreTask(document.querySelector('.border-grade .btn-success')); // Hapus kartu setelah dinilai
+            }
+        }
+
+        function updateCounter() {
+            const currentCount = document.querySelectorAll('.task-card').length;
+            document.getElementById('pendingCount').textContent = currentCount;
+            if (currentCount === 0) {
+                document.getElementById('emptyState').classList.remove('d-none');
+            }
+        }
+    </script>
+</body>
+</html>
+{{ end }}

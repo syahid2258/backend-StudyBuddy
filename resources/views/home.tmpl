@@ -1,0 +1,314 @@
+{{ define "home.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - Home</title>
+    <meta name="description" content="Dashboard belajar StudyBuddy — kelola topik dan pantau progresmu.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .app-wrapper {
+            min-height: 100vh;
+            padding-bottom: 85px;
+            padding-top: 3px;
+        }
+        .text-brand { color: #02237D; }
+        .bg-brand { background-color: #02237D; }
+
+        /* Bottom Nav Item */
+        .nav-item-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        .nav-item-btn .nav-icon { font-size: 1.4rem; }
+        .nav-item-btn .nav-label { font-size: 0.68rem; font-weight: 600; margin-top: 2px; }
+
+        /* Topic Card */
+        .topic-card {
+            border-radius: 12px;
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .topic-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1) !important; }
+
+        /* Progress bar */
+        .progress { height: 7px; border-radius: 10px; background-color: #e5e7eb; }
+        .progress-bar { background-color: #3144a1; border-radius: 10px; }
+
+        /* Skeleton Loader */
+        .skeleton {
+            background: linear-gradient(90deg, #e8eaf0 25%, #f4f6fc 50%, #e8eaf0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <!-- Top Navbar -->
+        <div class="d-flex align-items-center justify-content-between text-white p-3 shadow-sm mx-auto mobile-container bg-brand">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-book-half fs-5"></i>
+                <span class="fw-semibold fs-5">StudyBuddy</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold" style="font-size: 0.9rem;">
+                    {{ if .user.Name }}Halo, {{ .user.Name }}!{{ else }}Selamat Datang!{{ end }}
+                </span>
+            </div>
+        </div>
+
+        <div class="container mt-4 mobile-container">
+            <h2 class="fw-bold mb-1" style="color: #1a1e23;">Daftar Topik Belajar</h2>
+            <p class="text-muted mb-4" style="font-size: 0.9rem;">Kelola materi dan pantau progres belajarmu secara efisien</p>
+
+            <!-- Button Tambah Topik -->
+            <a href="/addTopic" class="btn w-100 text-white mb-4 shadow-sm bg-brand" style="border-radius: 8px; font-weight: 600;">
+                <i class="bi bi-plus-lg me-1"></i> Tambah Topik Baru
+            </a>
+
+            <!-- Inline Edit Form (Hidden by default) -->
+            <div id="edit-form-container" class="card mb-4 border-0 shadow-sm rounded-4 d-none">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Edit Topik</h5>
+                    <form id="edit-form">
+                        <input type="hidden" id="edit-id">
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.85rem;">Judul Topik</label>
+                            <input type="text" id="edit-title" class="form-control" required />
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label" style="font-size: 0.85rem;">Diselesaikan</label>
+                                <input type="number" id="edit-completed" min="0" class="form-control" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label" style="font-size: 0.85rem;">Total Sub</label>
+                                <input type="number" id="edit-total" min="1" class="form-control" required />
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn text-white w-100 bg-brand">Update</button>
+                            <button type="button" onclick="resetForm()" class="btn btn-light w-100 border">Batal</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Topics List Container -->
+            <div id="topics-list">
+                <!-- Skeleton loaders while fetching -->
+                <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+                    <div class="card-body p-4">
+                        <div class="skeleton mb-2" style="height:18px; width: 60%;"></div>
+                        <div class="skeleton mb-3" style="height:12px; width: 40%;"></div>
+                        <div class="skeleton" style="height:7px; width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+                    <div class="card-body p-4">
+                        <div class="skeleton mb-2" style="height:18px; width: 70%;"></div>
+                        <div class="skeleton mb-3" style="height:12px; width: 45%;"></div>
+                        <div class="skeleton" style="height:7px; width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Motivational card -->
+            <div class="card border-0 mb-5 text-center mt-4 p-4 shadow-sm" style="border-radius: 12px; background-color: #f2f2fa;">
+                <h6 class="fw-bold fs-5 text-dark">Siap untuk sesi belajar baru?</h6>
+                <p class="text-muted mb-4 mt-2" style="font-size: 0.85rem;">Tambahkan topik baru atau lanjutkan materi yang sedang berjalan untuk menjaga momentum belajarmu.</p>
+                <a href="/addTopic" class="btn btn-outline-primary bg-white fw-semibold">Tambah Topik</a>
+            </div>
+        </div>
+
+        <!-- Sticky Bottom Navbar -->
+        <div class="fixed-bottom bg-white shadow-sm d-flex justify-content-around py-2 mx-auto mobile-container" style="border-top: 1px solid #eee; max-width: 480px; left: 50%; transform: translateX(-50%);">
+            <div class="text-center text-brand nav-item-btn" onclick="window.location.href='/home'" style="cursor: pointer;">
+                <div class="nav-icon"><i class="bi bi-grid-fill"></i></div>
+                <div class="nav-label">Dashboard</div>
+            </div>
+            <div class="text-center text-secondary nav-item-btn" onclick="window.location.href='/flashcard'" style="cursor: pointer;">
+                <div class="nav-icon"><i class="bi bi-files"></i></div>
+                <div class="nav-label">Flashcard</div>
+            </div>
+            <div class="text-center text-secondary nav-item-btn" onclick="window.location.href='/tanya-ai'" style="cursor: pointer;">
+                <div class="nav-icon"><i class="bi bi-robot"></i></div>
+                <div class="nav-label">Tanya AI</div>
+            </div>
+            <div class="text-center text-secondary nav-item-btn" onclick="window.location.href='/profile'" style="cursor: pointer;">
+                <div class="nav-icon"><i class="bi bi-person-circle"></i></div>
+                <div class="nav-label">Profil</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isEditingId = null;
+
+        // ── Fetch topics from backend API ──
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchTopics();
+            document.getElementById('edit-form').addEventListener('submit', handleEditSubmit);
+        });
+
+        async function fetchTopics() {
+            try {
+                const res = await fetch('/api/topics', { credentials: 'same-origin' });
+                if (res.status === 401 || res.status === 302) {
+                    window.location.href = '/login';
+                    return;
+                }
+                const json = await res.json();
+                const topics = json.data || [];
+                renderTopics(topics);
+            } catch (err) {
+                document.getElementById('topics-list').innerHTML = `
+                    <div class="alert alert-warning text-center" role="alert">
+                        <i class="bi bi-wifi-off me-2"></i>Gagal memuat topik. Periksa koneksi Anda.
+                    </div>`;
+            }
+        }
+
+        // ── Render Topics ──
+        function renderTopics(topics) {
+            const container = document.getElementById('topics-list');
+            container.innerHTML = '';
+
+            if (topics.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-journal-x" style="font-size: 3rem; color: #94a3b8;"></i>
+                        <p class="mt-3 text-muted fw-semibold">Belum ada topik belajar.</p>
+                        <p class="text-muted" style="font-size: 0.85rem;">Klik tombol di atas untuk menambahkan topik pertamamu!</p>
+                    </div>`;
+                return;
+            }
+
+            topics.forEach(t => {
+                let progress = t.total > 0 ? (t.completed / t.total) * 100 : 0;
+                if (progress > 100) progress = 100;
+
+                const cardHTML = `
+                    <div class="card topic-card border-0 shadow-sm mb-3">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold text-brand" style="font-size: 1.05rem; padding-right: 40px;">${escapeHtml(t.title)}</h6>
+                            <p class="text-muted mb-2" style="font-size: 0.85rem;">${t.completed} dari ${t.total} sub-materi selesai</p>
+
+                            <div class="progress mb-3">
+                                <div class="progress-bar" style="width: ${progress}%;"></div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <div class="text-muted d-flex gap-3">
+                                    <i class="bi bi-trash text-danger" style="cursor: pointer; font-size: 1.1rem;" onclick="handleDelete(${t.id})" title="Hapus topik"></i>
+                                    <i class="bi bi-pencil-square text-secondary" style="cursor: pointer; font-size: 1.1rem;" onclick="handleEditInit(${t.id}, '${escapeHtml(t.title)}', ${t.completed}, ${t.total})" title="Edit topik"></i>
+                                </div>
+                                <a href="/modules?project_id=${t.id}" class="text-decoration-none" style="color: #4491f0; font-size: 0.85rem; font-weight: 600;">
+                                    Buka &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        // ── Edit Topic ──
+        function handleEditInit(id, title, completed, total) {
+            isEditingId = id;
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-title').value = title;
+            document.getElementById('edit-completed').value = completed;
+            document.getElementById('edit-total').value = total;
+            document.getElementById('edit-form-container').classList.remove('d-none');
+            document.getElementById('edit-form-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function resetForm() {
+            isEditingId = null;
+            document.getElementById('edit-form').reset();
+            document.getElementById('edit-form-container').classList.add('d-none');
+        }
+
+        async function handleEditSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const payload = {
+                title: document.getElementById('edit-title').value,
+                completed: parseInt(document.getElementById('edit-completed').value),
+                total: parseInt(document.getElementById('edit-total').value)
+            };
+
+            try {
+                const res = await fetch('/api/topics/' + id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    resetForm();
+                    fetchTopics();
+                } else {
+                    const d = await res.json();
+                    alert(d.message || 'Gagal memperbarui topik.');
+                }
+            } catch {
+                alert('Terjadi kesalahan koneksi.');
+            }
+        }
+
+        // ── Delete Topic ──
+        async function handleDelete(id) {
+            if (!window.confirm('Apakah Anda yakin ingin menghapus topik ini?')) return;
+            try {
+                const res = await fetch('/api/topics/' + id, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    fetchTopics();
+                } else {
+                    alert('Gagal menghapus topik.');
+                }
+            } catch {
+                alert('Terjadi kesalahan koneksi.');
+            }
+        }
+
+        // ── Utility ──
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
+{{ end }}

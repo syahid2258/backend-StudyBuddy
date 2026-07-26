@@ -1,0 +1,348 @@
+{{ define "flashcard.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - Flashcard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { 
+            background-color: #fafcfd; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; 
+        }
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #fafcfd;
+            position: relative;
+            padding-bottom: 100px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        .bg-brand { background-color: #02237D !important; }
+        .text-brand { color: #02237D !important; }
+        
+        /* Progress Section */
+        .progress-section {
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .progress-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .progress-count {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #02237D;
+        }
+        .progress-bar-bg {
+            background-color: #e2e8f0;
+            height: 6px;
+            border-radius: 4px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background-color: #02237D;
+            height: 100%;
+            width: 28%; /* 14 / 50 */
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Flashcard 3D Flip Styles */
+        .flashcard-scene {
+            padding: 0 1.5rem;
+            perspective: 1000px; /* Memberikan efek 3D */
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+        }
+        .flashcard {
+            width: 100%;
+            min-height: 420px;
+            position: relative;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            background-color: #d4e4ff; /* Light blue dari desain */
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px rgba(2, 35, 125, 0.08);
+            border: 1px solid #c4d7f5;
+            display: flex;
+            flex-direction: column;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Flashcard Content */
+        .card-tag {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #02237D;
+            background-color: #ffffff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .help-icon {
+            font-size: 1.2rem;
+            color: #94a3b8;
+        }
+        
+        /* Front Content */
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1a1e23;
+            text-align: center;
+            line-height: 1.4;
+            margin: auto 0; /* Center vertically */
+            padding: 0 10px;
+        }
+        .hint-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #64748b;
+            font-style: italic;
+            margin-top: auto;
+        }
+
+        /* Back Content */
+        .highlight-orange {
+            background-color: #fed7aa; /* Light orange */
+            color: #1a1e23;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .answer-text {
+            color: #1a1e23;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+
+        /* Next Button */
+        .next-btn-container {
+            padding: 0 1.5rem 2rem 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+        .next-btn-container.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .btn-next {
+            background-color: #02237D;
+            color: white;
+            font-weight: 600;
+            border-radius: 25px;
+            padding: 14px;
+            width: 100%;
+            border: none;
+            box-shadow: 0 4px 15px rgba(2, 35, 125, 0.2);
+            transition: background-color 0.2s;
+            font-size: 1.05rem;
+        }
+        .btn-next:hover {
+            background-color: #1e3a8a;
+        }
+
+        /* Bottom Navbar */
+        .bottom-action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 1020;
+        }
+        .nav-item {
+            text-align: center;
+            color: #64748b;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .nav-item.active { color: #02237D; }
+        .nav-item i {
+            font-size: 1.4rem;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .nav-item span {
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between text-white p-3 shadow-sm bg-brand sticky-top">
+            <i class="bi bi-arrow-left fs-4" style="cursor: pointer;" onclick="history.back()"></i>
+            <h5 class="mb-0 fw-semibold fs-5 text-center flex-grow-1">Flashcard</h5>
+            <div class="bg-warning text-dark fw-bold px-3 py-1 rounded-pill d-flex align-items-center gap-1" style="font-size: 0.85rem;">
+                <i class="bi bi-clock"></i> 00:00
+            </div>
+        </div>
+
+        <!-- Mastery Progress -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="progress-title">MASTERY PROGRESS</span>
+                <span class="progress-count">14 / 50 Cards</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill"></div>
+            </div>
+        </div>
+
+        <!-- Flashcard 3D Area -->
+        <div class="flashcard-scene">
+            <div class="flashcard" id="flashcardElement" onclick="flipCard()">
+                
+                <!-- FRONT FACE (Pertanyaan) -->
+                <div class="flashcard-face flashcard-front">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="card-tag">OOP</span>
+                        <i class="bi bi-question-circle help-icon"></i>
+                    </div>
+                    
+                    <div class="question-text">
+                        Apa perbedaan utama antara "abstraction" dan "encapsulation" dalam OOP?
+                    </div>
+                    
+                    <div class="hint-text">
+                        Ketuk untuk melihat jawaban
+                    </div>
+                </div>
+
+                <!-- BACK FACE (Jawaban) -->
+                <div class="flashcard-face flashcard-back">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <span class="card-tag text-uppercase">Correct Answer</span>
+                        <i class="bi bi-question-circle help-icon"></i>
+                    </div>
+                    
+                    <div class="mt-2">
+                        <!-- Poin 1 -->
+                        <div class="mb-4">
+                            <span class="highlight-orange">Abstraction</span>
+                            <p class="answer-text">menyembunyikan kompleksitas proses/cara kerja (behavior), sedangkan encapsulation</p>
+                        </div>
+                        
+                        <!-- Poin 2 -->
+                        <div>
+                            <span class="highlight-orange">Encapsulation</span>
+                            <p class="answer-text">menyembunyikan data internal (state) dari objek.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Next Button (Muncul setelah kartu dibalik) -->
+        <div class="next-btn-container" id="nextBtnContainer">
+            <button class="btn-next" onclick="nextCard()">Next</button>
+        </div>
+
+        <!-- Bottom Navbar -->
+        <div class="bottom-action-bar shadow-sm">
+            <a href="/home" class="nav-item">
+                <i class="bi bi-grid"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/flashcard" class="nav-item active">
+                <i class="bi bi-files"></i>
+                <span>Flashcard</span>
+            </a>
+            <a href="/profile" class="nav-item">
+                <i class="bi bi-person-circle"></i>
+                <span>Profile</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Script Logika Flip -->
+    <script>
+        const flashcard = document.getElementById('flashcardElement');
+        const nextBtnContainer = document.getElementById('nextBtnContainer');
+        let isFlipped = false;
+
+        // Fungsi membalik kartu
+        function flipCard() {
+            if (!isFlipped) {
+                flashcard.classList.add('is-flipped');
+                isFlipped = true;
+                
+                // Munculkan tombol Next dengan jeda agar selaras dengan durasi flip
+                setTimeout(() => {
+                    nextBtnContainer.classList.add('show');
+                }, 400);
+            } else {
+                // Opsional: jika ingin kartu bisa dibalik kembali ke pertanyaan
+                // flashcard.classList.remove('is-flipped');
+                // isFlipped = false;
+                // nextBtnContainer.classList.remove('show');
+            }
+        }
+
+        // Fungsi Tombol Next
+        function nextCard() {
+            // Logika untuk beralih ke flashcard berikutnya
+            // Untuk simulasi UI, kita kembalikan kartu ke posisi awal
+            nextBtnContainer.classList.remove('show');
+            flashcard.classList.remove('is-flipped');
+            isFlipped = false;
+            
+            // Di implementasi nyata, Anda akan melakukan fetch data soal berikutnya
+            // lalu meng-update isi .question-text dan .answer-text
+        }
+    </script>
+</body>
+</html>
+{{ end }}

@@ -1,0 +1,307 @@
+{{ define "pomodoro.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - Focus Session</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { 
+            background-color: #f4f6fa; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; 
+        }
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #ffffff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        }
+        .bg-brand { background-color: #02237D !important; }
+        .text-brand { color: #02237D !important; }
+        
+        /* Timer SVG Styles */
+        .timer-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 3rem 0;
+        }
+        .progress-ring {
+            transform: rotate(-90deg); /* Memulai garis dari atas (jam 12) */
+        }
+        .progress-ring__circle-bg {
+            stroke: #f1f5f9;
+        }
+        .progress-ring__circle {
+            stroke: #02237D;
+            transition: stroke-dashoffset 1s linear;
+        }
+        .timer-text {
+            position: absolute;
+            font-size: 4rem;
+            font-weight: 600;
+            color: #000000;
+            letter-spacing: -2px;
+        }
+
+        /* Current Focus Card */
+        .focus-card {
+            background-color: #f1f5f9;
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 0 1.5rem 2rem 1.5rem;
+        }
+        .focus-icon {
+            font-size: 1.8rem;
+            color: #02237D;
+        }
+        .focus-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+        .focus-subtitle {
+            font-size: 0.9rem;
+            color: #475569;
+            margin: 0;
+        }
+
+        /* Controls Section */
+        .controls-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 0 1.5rem 2.5rem 1.5rem;
+        }
+        .btn-give-up {
+            background-color: #1e3aa8;
+            color: white;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 14px 0;
+            flex-grow: 1;
+            border: none;
+            box-shadow: 0 4px 12px rgba(30, 58, 168, 0.2);
+            transition: all 0.2s;
+        }
+        .btn-give-up:hover {
+            background-color: #152c82;
+        }
+        .btn-pause {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background-color: #f1f5f9;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #02237D;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-pause:hover {
+            background-color: #e2e8f0;
+        }
+
+        /* Session Indicators */
+        .session-info {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .session-text {
+            font-size: 0.8rem;
+            color: #02237D;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .dots-container {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #d1d5db;
+        }
+        .dot.active {
+            background-color: #1e3aa8;
+        }
+        
+        /* Next Step Pill */
+        .next-step-wrapper {
+            text-align: center;
+            padding-bottom: 2rem;
+        }
+        .next-step-pill {
+            display: inline-block;
+            background-color: #eef2fa;
+            color: #02237D;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between text-white p-3 bg-brand">
+            <i class="bi bi-arrow-left fs-4" style="cursor: pointer;" onclick="history.back()"></i>
+            <h5 class="mb-0 fw-semibold fs-5">Focus Session</h5>
+            <i class="bi bi-gear fs-5" style="cursor: pointer;"></i>
+        </div>
+
+        <!-- Timer Section -->
+        <div class="timer-container">
+            <svg class="progress-ring" width="280" height="280">
+                <!-- Lingkaran Background -->
+                <circle class="progress-ring__circle-bg" stroke-width="12" fill="transparent" r="120" cx="140" cy="140"/>
+                <!-- Lingkaran Progress (Garis Biru) -->
+                <circle class="progress-ring__circle" id="progressCircle" stroke-width="12" fill="transparent" r="120" cx="140" cy="140" stroke-linecap="round"/>
+            </svg>
+            <div class="timer-text" id="timeDisplay">20:00</div>
+        </div>
+
+        <!-- Current Focus Info -->
+        <div class="focus-card shadow-sm">
+            <i class="bi bi-journal-text focus-icon"></i>
+            <div>
+                <p class="focus-title">Current Focus</p>
+                <p class="focus-subtitle">Quiz: Termodinamika</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-wrapper">
+            <button class="btn-give-up" onclick="giveUp()">Give Up</button>
+            <button class="btn-pause" id="pauseBtn" onclick="togglePause()">
+                <i class="bi bi-pause-fill" id="pauseIcon"></i>
+            </button>
+        </div>
+
+        <!-- Session Indicators -->
+        <div class="session-info">
+            <div class="session-text">Finish Session</div>
+            <div class="dots-container">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <div class="session-text" style="font-weight: 500;">Session 1 of 4</div>
+        </div>
+
+        <!-- Next Break Pill -->
+        <div class="next-step-wrapper mt-auto">
+            <div class="next-step-pill">
+                Next: Short Break (5:00)
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script Logika Timer -->
+    <script>
+        // Konfigurasi Timer
+        const TOTAL_MINUTES = 20;
+        let timeRemaining = TOTAL_MINUTES * 60; // Konversi ke detik
+        const totalSeconds = TOTAL_MINUTES * 60;
+        let timerInterval;
+        let isPaused = false;
+
+        // Elemen DOM
+        const timeDisplay = document.getElementById('timeDisplay');
+        const progressCircle = document.getElementById('progressCircle');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const pauseIcon = document.getElementById('pauseIcon');
+
+        // Kalkulasi Keliling Lingkaran untuk animasi SVG
+        const radius = progressCircle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressCircle.style.strokeDashoffset = circumference;
+
+        function updateProgress(percent) {
+            const offset = circumference - (percent / 100) * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            // Animasi awal ring penuh
+            updateProgress(100);
+
+            timerInterval = setInterval(() => {
+                if (!isPaused && timeRemaining > 0) {
+                    timeRemaining--;
+                    timeDisplay.textContent = formatTime(timeRemaining);
+                    
+                    // Update garis lingkaran
+                    const percentage = (timeRemaining / totalSeconds) * 100;
+                    updateProgress(percentage);
+                } else if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Sesi Fokus Selesai!");
+                }
+            }, 1000);
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            if (isPaused) {
+                pauseIcon.classList.remove('bi-pause-fill');
+                pauseIcon.classList.add('bi-play-fill');
+            } else {
+                pauseIcon.classList.remove('bi-play-fill');
+                pauseIcon.classList.add('bi-pause-fill');
+            }
+        }
+
+        function giveUp() {
+            if (window.confirm("Yakin ingin menghentikan sesi fokus ini?")) {
+                clearInterval(timerInterval);
+                history.back(); // Kembali ke halaman sebelumnya
+            }
+        }
+
+        // Jalankan timer saat halaman dimuat
+        window.onload = () => {
+            timeDisplay.textContent = formatTime(timeRemaining);
+            // Setup animasi awal dengan jeda kecil agar transisinya terlihat mulus
+            setTimeout(() => {
+                startTimer();
+            }, 100);
+        };
+    </script>
+</body>
+</html>
+{{ end }}

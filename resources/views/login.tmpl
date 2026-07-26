@@ -1,0 +1,465 @@
+{{ define "login.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - Login</title>
+    <meta name="description" content="Masuk ke StudyBuddy dan mulai perjalanan belajar cerdasmu dengan AI.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { 
+            background: linear-gradient(135deg, #f0f4fd 0%, #dbe7f8 100%);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; 
+            min-height: 100vh;
+        }
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 1.5rem;
+            position: relative;
+        }
+
+        .bg-brand { background-color: #02237D !important; }
+        .text-brand { color: #02237D !important; }
+        
+        .logo-box {
+            width: 64px;
+            height: 64px;
+            background-color: #02237D;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            box-shadow: 0 4px 10px rgba(2, 35, 125, 0.2);
+        }
+
+        .app-title {
+            font-weight: 800;
+            color: #1a1e23;
+            font-size: 1.5rem;
+            margin-top: 1rem;
+            margin-bottom: 0.2rem;
+        }
+        .app-subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .form-card {
+            background-color: #ffffff;
+            border-radius: 20px;
+            border: none;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-wrapper {
+            position: relative;
+            transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .form-pane {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .form-pane#loginForm { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        .form-pane#registerForm { opacity: 0; transform: translateX(100%); pointer-events: none; visibility: hidden; }
+
+        .show-register .form-pane#loginForm { opacity: 0; transform: translateX(-100%); pointer-events: none; visibility: hidden; }
+        .show-register .form-pane#registerForm { opacity: 1; transform: translateX(0); pointer-events: auto; visibility: visible; }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.4rem;
+        }
+        .custom-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .custom-input:focus-within {
+            border-color: #02237D;
+            box-shadow: 0 0 0 3px rgba(2, 35, 125, 0.1);
+        }
+        .custom-input .input-group-text {
+            background-color: transparent;
+            border: none;
+            color: #64748b;
+            padding-right: 0.5rem;
+        }
+        .custom-input .form-control {
+            border: none;
+            box-shadow: none;
+            padding-left: 0.5rem;
+            font-size: 0.95rem;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            color: #1e293b;
+        }
+        .custom-input .form-control::placeholder { color: #94a3b8; }
+
+        .btn-primary-custom {
+            background-color: #02237D;
+            color: white;
+            border-radius: 25px;
+            font-weight: 600;
+            padding: 12px;
+            border: none;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn-primary-custom:hover { background-color: #1e3a8a; color: white; }
+        .btn-primary-custom:active { transform: scale(0.98); }
+        .btn-primary-custom:disabled { background-color: #94a3b8; cursor: not-allowed; }
+
+        .btn-google {
+            background-color: #ffffff;
+            color: #1e293b;
+            border-radius: 25px;
+            font-weight: 600;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+        }
+        .btn-google:hover { background-color: #f1f5f9; }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .divider::before { margin-right: 1rem; }
+        .divider::after { margin-left: 1rem; }
+
+        .forgot-pass {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #02237D;
+            text-decoration: none;
+            display: block;
+            text-align: right;
+            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-text {
+            color: #475569;
+            font-size: 0.95rem;
+            margin-top: 2rem;
+        }
+        .toggle-link {
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .toggle-link:hover { text-decoration: underline; }
+
+        /* Error / Success Alert */
+        .alert-custom {
+            border-radius: 12px;
+            font-size: 0.875rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading spinner on button */
+        .spinner-border-sm { width: 1rem; height: 1rem; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container" id="mainContainer">
+        
+        <!-- Header / Logo -->
+        <div class="text-center mb-4">
+            <div class="logo-box">
+                <i class="bi bi-book-half text-white fs-4"></i>
+            </div>
+            <h2 class="app-title">StudyBuddy</h2>
+            <p class="app-subtitle">Find Your Easiest Way to Study</p>
+        </div>
+
+        <!-- Error Alert -->
+        <div id="alertBox" class="alert alert-danger alert-custom" role="alert">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            <span id="alertMessage"></span>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card form-card">
+            <div class="form-wrapper" id="formWrapper">
+                
+                <!-- 1. FORM LOGIN -->
+                <div class="form-pane" id="loginForm">
+                    <form id="loginFormEl" onsubmit="handleLogin(event)">
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <div class="custom-input">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" id="loginEmail" class="form-control" placeholder="example@email.com" required>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div>
+                            <label class="form-label">Password</label>
+                            <div class="custom-input">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        
+                        <a href="#" class="forgot-pass">Lupa Password?</a>
+
+                        <!-- Submit Button -->
+                        <button type="submit" id="loginBtn" class="btn btn-primary-custom w-100">
+                            Masuk Sekarang
+                        </button>
+
+                        <div class="divider">ATAU</div>
+
+                        <!-- Google Button (placeholder) -->
+                        <button type="button" class="btn btn-google w-100" disabled style="opacity:0.6; cursor:not-allowed;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.73 17.74 9.5 24 9.5z"/>
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                            </svg>
+                            Masuk dengan Google
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 2. FORM REGISTER -->
+                <div class="form-pane" id="registerForm">
+                    <form id="registerFormEl" onsubmit="handleRegister(event)">
+                        <!-- Nama Lengkap -->
+                        <div class="mb-3">
+                            <label class="form-label">Nama Lengkap</label>
+                            <div class="custom-input">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" id="registerName" class="form-control" placeholder="Nama Anda" required>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <div class="custom-input">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" id="registerEmail" class="form-control" placeholder="example@email.com" required>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-4">
+                            <label class="form-label">Password</label>
+                            <div class="custom-input">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" id="registerPassword" class="form-control" placeholder="Min. 6 karakter" required minlength="6">
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <button type="submit" id="registerBtn" class="btn btn-primary-custom w-100">
+                            Daftar Sekarang
+                        </button>
+
+                        <div class="divider">ATAU</div>
+
+                        <!-- Google Button (placeholder) -->
+                        <button type="button" class="btn btn-google w-100" disabled style="opacity:0.6; cursor:not-allowed;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.73 17.74 9.5 24 9.5z"/>
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                            </svg>
+                            Daftar dengan Google
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Text Toggles -->
+        <div class="text-center">
+            <p id="footerLogin" class="footer-text">
+                Belum punya akun? <span class="text-brand fw-bold toggle-link" onclick="toggleForm('register')">Daftar Sekarang</span>
+            </p>
+            <p id="footerRegister" class="footer-text d-none">
+                Sudah punya akun? <span class="text-brand fw-bold toggle-link" onclick="toggleForm('login')">Masuk Sekarang</span>
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        const formWrapper = document.getElementById('formWrapper');
+        const loginFormPane = document.getElementById('loginForm');
+        const registerFormPane = document.getElementById('registerForm');
+        const container = document.getElementById('mainContainer');
+        const footerLogin = document.getElementById('footerLogin');
+        const footerRegister = document.getElementById('footerRegister');
+        const alertBox = document.getElementById('alertBox');
+        const alertMessage = document.getElementById('alertMessage');
+
+        // Init height
+        function initHeights() {
+            setTimeout(() => {
+                formWrapper.style.height = loginFormPane.offsetHeight + 'px';
+            }, 50);
+        }
+        window.addEventListener('load', initHeights);
+
+        // Toggle form animation
+        function toggleForm(target) {
+            hideAlert();
+            if (target === 'register') {
+                container.classList.add('show-register');
+                setTimeout(() => { formWrapper.style.height = registerFormPane.offsetHeight + 'px'; }, 10);
+                footerLogin.classList.add('d-none');
+                footerRegister.classList.remove('d-none');
+            } else {
+                container.classList.remove('show-register');
+                setTimeout(() => { formWrapper.style.height = loginFormPane.offsetHeight + 'px'; }, 10);
+                footerRegister.classList.add('d-none');
+                footerLogin.classList.remove('d-none');
+            }
+        }
+
+        function showAlert(message, type = 'danger') {
+            alertBox.className = `alert alert-${type} alert-custom`;
+            alertMessage.textContent = message;
+            alertBox.style.display = 'block';
+        }
+
+        function hideAlert() {
+            alertBox.style.display = 'none';
+        }
+
+        function setLoading(btn, loading) {
+            if (loading) {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span>Memproses...`;
+            } else {
+                btn.disabled = false;
+            }
+        }
+
+        // Handle Login Form Submit
+        async function handleLogin(e) {
+            e.preventDefault();
+            hideAlert();
+
+            const btn = document.getElementById('loginBtn');
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            setLoading(btn, true);
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    // Cookie is set by server — redirect to home
+                    window.location.href = '/home';
+                } else {
+                    showAlert(data.message || 'Login gagal. Periksa email dan password Anda.');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Masuk Sekarang';
+                }
+            } catch (err) {
+                showAlert('Terjadi kesalahan koneksi. Coba lagi.');
+                btn.disabled = false;
+                btn.innerHTML = 'Masuk Sekarang';
+            }
+        }
+
+        // Handle Register Form Submit
+        async function handleRegister(e) {
+            e.preventDefault();
+            hideAlert();
+
+            const btn = document.getElementById('registerBtn');
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            setLoading(btn, true);
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    window.location.href = '/home';
+                } else {
+                    showAlert(data.message || 'Pendaftaran gagal. Coba lagi.');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Daftar Sekarang';
+                }
+            } catch (err) {
+                showAlert('Terjadi kesalahan koneksi. Coba lagi.');
+                btn.disabled = false;
+                btn.innerHTML = 'Daftar Sekarang';
+            }
+        }
+    </script>
+</body>
+</html>
+{{ end }}

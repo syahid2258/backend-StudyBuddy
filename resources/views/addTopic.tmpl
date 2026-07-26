@@ -1,0 +1,427 @@
+{{ define "addTopic.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - Tambah Topik</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { 
+            background-color: #f4f6fa; 
+            margin: 0; 
+        }
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #f4f6fa;
+            position: relative;
+            padding-bottom: 100px; /* Diperbesar untuk tombol generate */
+        }
+        .bg-brand { background-color: #02237D; }
+        .text-brand { color: #02237D; }
+        
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #495057;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Nav Pills Custom (Tabs) */
+        .nav-pills .nav-link {
+            border-radius: 8px;
+            color: #6c757d;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 8px 12px;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #02237D;
+            color: #ffffff;
+        }
+
+        /* Custom Upload Box */
+        .upload-box {
+            border: 2px dashed #b0b5c1;
+            border-radius: 12px;
+            background-color: #ffffff;
+            text-align: center;
+            padding: 2.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .upload-box:hover {
+            border-color: #02237D;
+            background-color: #f8f9fc;
+        }
+        .upload-icon {
+            font-size: 2.5rem;
+            color: #02237D;
+            margin-bottom: 0.5rem;
+        }
+
+        /* File Preview Box */
+        .file-preview {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background-color: #ffffff;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .file-icon-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: #eef2fa;
+            color: #02237D;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        /* Card Style */
+        .method-card {
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background-color: #ffffff;
+        }
+        
+        .form-switch .form-check-input {
+            width: 3rem;
+            height: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .nav-bottom {
+            max-width: 480px;
+            margin: 0 auto;
+            border-top: 1px solid #e5e7eb;
+            z-index: 1030;
+        }
+
+        /* Generate Button Fixed inside container */
+        .btn-generate {
+            border-radius: 8px;
+            font-weight: 600;
+            background-color: #02237D;
+            transition: all 0.3s;
+        }
+        .btn-generate:disabled {
+            background-color: #a0aec0;
+            border-color: #a0aec0;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <!-- Header (Sticky Top) -->
+        <div class="d-flex align-items-center text-white p-3 shadow-sm bg-brand sticky-top">
+            <i class="bi bi-arrow-left fs-4 me-3" style="cursor: pointer;" onclick="window.location.href='/home'"></i>
+            <h5 class="mb-0 fw-semibold fs-5">Tambah Topik</h5>
+        </div>
+
+        <div class="p-3 mt-2">
+            <!-- NAMA TOPIK -->
+            <div class="mb-4">
+                <div class="section-label text-uppercase">Nama Topik</div>
+                <input type="text" id="topicName" class="form-control py-3 shadow-sm" placeholder="Contoh: Basis Data Relasional" style="border-radius: 10px; border: 1px solid #ced4da; font-size: 0.95rem;">
+            </div>
+
+            <!-- MATERI BELAJAR (Tabs) -->
+            <div class="mb-4">
+                <div class="section-label text-uppercase d-flex justify-content-between align-items-center mb-2">
+                    <span>Sumber Materi</span>
+                </div>
+                
+                <!-- Tab Navigasi -->
+                <ul class="nav nav-pills mb-3 d-flex justify-content-between bg-white p-1 shadow-sm" style="border-radius: 10px;" id="materialTabs" role="tablist">
+                    <li class="nav-item flex-fill text-center" role="presentation">
+                        <button class="nav-link active w-100" id="file-tab" data-bs-toggle="pill" data-bs-target="#tab-file" type="button" role="tab">
+                            <i class="bi bi-file-earmark me-1"></i> File
+                        </button>
+                    </li>
+                    <li class="nav-item flex-fill text-center" role="presentation">
+                        <button class="nav-link w-100" id="url-tab" data-bs-toggle="pill" data-bs-target="#tab-url" type="button" role="tab">
+                            <i class="bi bi-link-45deg me-1"></i> Tautan
+                        </button>
+                    </li>
+                    <li class="nav-item flex-fill text-center" role="presentation">
+                        <button class="nav-link w-100" id="ai-tab" data-bs-toggle="pill" data-bs-target="#tab-ai" type="button" role="tab">
+                            <i class="bi bi-stars me-1"></i> Prompt AI
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Konten -->
+                <div class="tab-content" id="materialTabsContent">
+                    
+                    <!-- 1. Tab File -->
+                    <div class="tab-pane fade show active" id="tab-file" role="tabpanel">
+                        <!-- Box Upload (Muncul jika belum ada file) -->
+                        <div id="uploadBox" class="upload-box shadow-sm" onclick="triggerUpload()">
+                            <i class="bi bi-cloud-arrow-up upload-icon"></i>
+                            <h6 class="fw-bold text-dark mt-2 mb-1" style="font-size: 0.95rem;">Unggah dokumen materi</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.8rem;">PDF, PPTX, atau DOCX (Max 10MB)</p>
+                        </div>
+                        <input type="file" id="fileInput" class="d-none" accept=".pdf,.pptx,.docx" />
+                        
+                        <!-- File Preview (Muncul setelah file dipilih) -->
+                        <div id="filePreview" class="file-preview shadow-sm d-none">
+                            <div class="d-flex align-items-center overflow-hidden">
+                                <div class="file-icon-box me-3 shadow-sm">
+                                    <i id="fileIcon" class="bi bi-file-earmark-pdf"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <h6 id="fileName" class="fw-bold mb-0 text-truncate" style="font-size: 0.9rem; max-width: 200px;">materi_basis_data.pdf</h6>
+                                    <small id="fileSize" class="text-muted" style="font-size: 0.75rem;">2.4 MB</small>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-light text-danger rounded-circle p-2 shadow-sm" onclick="removeFile()">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Tab Tautan URL -->
+                    <div class="tab-pane fade" id="tab-url" role="tabpanel">
+                        <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-link"></i></span>
+                            <input type="url" id="urlInput" class="form-control py-3 border-start-0 ps-0" placeholder="Masukkan link artikel atau YouTube">
+                        </div>
+                        <small class="text-muted mt-2 d-block" style="font-size: 0.75rem;">AI akan membaca konten dari tautan tersebut.</small>
+                    </div>
+
+                    <!-- 3. Tab Prompt AI (Chat) -->
+                    <div class="tab-pane fade" id="tab-ai" role="tabpanel">
+                        <div class="position-relative shadow-sm" style="border-radius: 12px; overflow: hidden; background: #fff;">
+                            <textarea id="aiPrompt" class="form-control border-0 p-3" rows="4" placeholder="Ceritakan apa yang ingin kamu pelajari hari ini...&#10;Contoh: Buatkan saya materi tentang cara kerja jaringan LoRaWAN dari dasar." style="resize: none; font-size: 0.9rem;"></textarea>
+                            <div class="position-absolute bottom-0 end-0 p-2 text-brand">
+                                <i class="bi bi-robot fs-5"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- METODE BELAJAR -->
+            <div class="mb-4">
+                <div class="method-card p-4 shadow-sm">
+                    <h5 class="fw-bold mb-4" style="font-size: 1.1rem;">Metode Belajar</h5>
+                    
+                    <!-- Feynman Technique -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="pe-4">
+                            <h6 class="fw-semibold mb-1" style="font-size: 0.95rem;">Feynman Technique</h6>
+                            <p class="text-muted mb-0 lh-sm" style="font-size: 0.85rem;">Jelaskan ulang materi dengan kata sendiri, dinilai AI</p>
+                        </div>
+                        <div class="form-check form-switch m-0 p-0">
+                            <input class="form-check-input ms-0 shadow-none" type="checkbox" role="switch" id="feynmanSwitch">
+                        </div>
+                    </div>
+
+                    <hr style="border-color: #e5e7eb; margin: 1.25rem 0;">
+
+                    <!-- Spaced Repetition -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="pe-4">
+                            <h6 class="fw-semibold mb-1" style="font-size: 0.95rem;">Spaced Repetition</h6>
+                            <p class="text-muted mb-0 lh-sm" style="font-size: 0.85rem;">Flashcard direview ulang otomatis sesuai jadwal</p>
+                        </div>
+                        <div class="form-check form-switch m-0 p-0">
+                            <input class="form-check-input ms-0 shadow-none" type="checkbox" role="switch" id="spacedSwitch">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOMBOL GENERATE -->
+            <button id="generateBtn" disabled onclick="submitTopic()" class="btn btn-generate w-100 text-white py-3 shadow-sm mb-3 text-uppercase" style="letter-spacing: 0.5px;">
+                <span id="generateText"><i class="bi bi-magic me-2"></i> Buat Rute Belajar</span>
+                <div id="generateSpinner" class="spinner-border spinner-border-sm text-light d-none" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </button>
+        </div>
+
+        <!-- Sticky Bottom Navbar -->
+        <div class="fixed-bottom bg-white shadow-sm d-flex justify-content-around py-2 nav-bottom">
+            <div class="text-center text-secondary" style="cursor: pointer;" onclick="window.location.href='/home'">
+                <i class="bi bi-grid fs-5"></i>
+                <div style="font-size: 0.7rem; font-weight: 600;">Dashboard</div>
+            </div>
+            <div class="text-center text-secondary" style="cursor: pointer;">
+                <i class="bi bi-files fs-5"></i>
+                <div style="font-size: 0.7rem; font-weight: 600;">Flashcard</div>
+            </div>
+            <div class="text-center text-secondary" style="cursor: pointer;">
+                <i class="bi bi-person-circle fs-5"></i>
+                <div style="font-size: 0.7rem; font-weight: 600;">Profile</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS (Untuk fungsi Tabs) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // DOM Elements
+        const topicName = document.getElementById('topicName');
+        const fileInput = document.getElementById('fileInput');
+        const urlInput = document.getElementById('urlInput');
+        const aiPrompt = document.getElementById('aiPrompt');
+        const generateBtn = document.getElementById('generateBtn');
+
+        const uploadBox = document.getElementById('uploadBox');
+        const filePreview = document.getElementById('filePreview');
+        const fileNameEl = document.getElementById('fileName');
+        const fileSizeEl = document.getElementById('fileSize');
+        const fileIconEl = document.getElementById('fileIcon');
+
+        let selectedFile = null;
+
+        // Fungsi Validasi State Form
+        function validateForm() {
+            const hasTopicName = topicName.value.trim().length > 0;
+            const hasFile = selectedFile !== null;
+            const hasUrl = urlInput.value.trim().length > 0;
+            const hasPrompt = aiPrompt.value.trim().length > 0;
+
+            // Tombol aktif jika Nama Topik disi AND salah satu sumber materi diisi
+            if (hasTopicName && (hasFile || hasUrl || hasPrompt)) {
+                generateBtn.removeAttribute('disabled');
+            } else {
+                generateBtn.setAttribute('disabled', 'true');
+            }
+        }
+
+        // Listeners untuk validasi real-time
+        topicName.addEventListener('input', validateForm);
+        urlInput.addEventListener('input', validateForm);
+        aiPrompt.addEventListener('input', validateForm);
+
+        // Upload File Logic
+        function triggerUpload() {
+            fileInput.click();
+        }
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                
+                // Update UI Nama & Size
+                fileNameEl.textContent = selectedFile.name;
+                fileSizeEl.textContent = (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB';
+                
+                // Update Icon berdasarkan ekstensi
+                const ext = selectedFile.name.split('.').pop().toLowerCase();
+                if (ext === 'pdf') {
+                    fileIconEl.className = 'bi bi-file-earmark-pdf text-danger';
+                } else if (ext === 'pptx' || ext === 'ppt') {
+                    fileIconEl.className = 'bi bi-file-earmark-ppt text-warning';
+                } else if (ext === 'docx' || ext === 'doc') {
+                    fileIconEl.className = 'bi bi-file-earmark-word text-primary';
+                } else {
+                    fileIconEl.className = 'bi bi-file-earmark text-secondary';
+                }
+
+                // Switch UI (Sembunyikan Box Upload, Tampilkan Preview)
+                uploadBox.classList.add('d-none');
+                filePreview.classList.remove('d-none');
+                
+                // Clear input lain agar fokus ke file
+                urlInput.value = '';
+                aiPrompt.value = '';
+                
+                validateForm();
+            }
+        });
+
+        // Hapus File Logic
+        function removeFile() {
+            selectedFile = null;
+            fileInput.value = ''; // Reset input file
+            
+            // Switch UI kembali
+            filePreview.classList.add('d-none');
+            uploadBox.classList.remove('d-none');
+            
+            validateForm();
+        }
+
+        // Note: WebSocket listener dipindahkan ke generate-topic.tmpl sesuai request.
+
+        // Submit Topic Request
+        function submitTopic() {
+            // Tampilkan Loading
+            document.getElementById('generateText').classList.add('d-none');
+            document.getElementById('generateSpinner').classList.remove('d-none');
+            generateBtn.setAttribute('disabled', 'true');
+            
+            const formData = new FormData();
+            formData.append("title", topicName.value.trim());
+            
+            if (selectedFile) {
+                formData.append("file", selectedFile);
+            }
+            const promptVal = aiPrompt.value.trim() || urlInput.value.trim();
+            if (promptVal) {
+                formData.append("prompt_text", promptVal);
+            }
+            
+            formData.append("feynman", document.getElementById('feynmanSwitch').checked);
+            formData.append("spaced_repetition", document.getElementById('spacedSwitch').checked);
+            
+            fetch('/api/topics/generate', {
+                method: 'POST',
+                body: formData
+            })
+            .then(async res => {
+                if (!res.ok) {
+                    let errText = await res.text();
+                    let errObj = { message: errText };
+                    try { 
+                        let errJson = JSON.parse(errText);
+                        errObj.message = errJson.error || errText;
+                        errObj.req_id = errJson.req_id;
+                    } catch(e) {}
+                    throw errObj;
+                }
+                return res.json();
+            })
+            .then(data => {
+                // Request masuk antrean, langsung arahkan ke halaman generate topic.
+                window.location.href = '/generate-topic?req_id=' + data.req_id;
+            })
+            .catch(err => {
+                console.error(err);
+                if (err.req_id) {
+                    let confirmSim = confirm("Terjadi kesalahan: " + err.message + "\n\nApakah Anda ingin lanjut menggunakan AI Simulasi (Admin Request)?");
+                    if (confirmSim) {
+                        window.location.href = '/generate-topic?req_id=' + err.req_id;
+                        return;
+                    }
+                } else {
+                    alert("Terjadi kesalahan: " + (err.message || err));
+                }
+                
+                document.getElementById('generateText').classList.remove('d-none');
+                document.getElementById('generateSpinner').classList.add('d-none');
+                validateForm();
+            });
+        }
+    </script>
+</body>
+</html>
+{{ end }}

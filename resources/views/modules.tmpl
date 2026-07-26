@@ -1,0 +1,321 @@
+{{ define "modules.tmpl" }}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - Rute Belajar</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: #f8fafc;
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 90px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        }
+        .bg-brand { background-color: #02237D !important; }
+        .text-brand { color: #02237D !important; }
+        
+        /* Hero Section */
+        .hero-section {
+            background-color: #02237D;
+            color: white;
+            padding: 2rem 1.5rem;
+            border-radius: 0 0 24px 24px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(2, 35, 125, 0.15);
+        }
+
+        /* Custom Progress Bar */
+        .progress-custom {
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .progress-custom-fill {
+            height: 100%;
+            background-color: #f59e0b; /* Kuning/Warning */
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        /* Timeline Custom CSS */
+        .timeline-container {
+            padding: 0 1.5rem;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 15px;
+            list-style: none;
+            margin: 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            bottom: 20px;
+            left: 22px;
+            width: 2px;
+            background-color: #e2e8f0;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+            padding-left: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Dot Status Colors */
+        .timeline-dot {
+            position: absolute;
+            left: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            z-index: 2;
+            border: 3px solid #f8fafc;
+        }
+        .timeline-dot.completed { background-color: #10b981; } /* Hijau */
+        .timeline-dot.active { 
+            background-color: #02237D; 
+            box-shadow: 0 0 0 4px rgba(2, 35, 125, 0.15);
+        }
+        .timeline-dot.locked { background-color: #cbd5e1; } /* Abu-abu */
+        .timeline-dot.exam { 
+            background-color: #f59e0b; /* Kuning Emas untuk Ujian */
+            border-radius: 4px; /* Bentuk kotak untuk bedakan ujian */
+            transform: translateY(-50%) rotate(45deg);
+        }
+
+        /* Item Content */
+        .item-card {
+            flex-grow: 1;
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        /* Clickable states */
+        .item-card.clickable { cursor: pointer; }
+        .item-card.clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-color: #c4d7f5;
+        }
+        .item-card.locked {
+            background-color: #f8fafc;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .item-number {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .item-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        /* Status Text & Icons */
+        .text-completed { color: #10b981; }
+        .text-active { color: #02237D; }
+        .text-locked { color: #94a3b8; }
+        .text-exam { color: #d97706; }
+
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container shadow-sm">
+        <!-- Top Navbar -->
+        <div class="d-flex align-items-center justify-content-between text-white p-3 bg-brand shadow-sm sticky-top">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-arrow-left fs-5" style="cursor: pointer;" onclick="window.location.href='/home'"></i>
+                <span class="fw-semibold fs-5">Rute Belajar</span>
+            </div>
+            <div class="bg-white text-brand fw-bold px-3 py-1 d-flex align-items-center gap-1" style="border-radius: 20px; font-size: 0.85rem;">
+                <i class="bi bi-mortarboard-fill"></i> Modul
+            </div>
+        </div>
+
+        <!-- Hero / Project Header -->
+        <div class="hero-section">
+            <h4 class="fw-bold mb-1 lh-base">{{ if .project }}{{ .project.Title }}{{ else }}Konsep Dasar Basis Data{{ end }}</h4>
+            <p class="mb-3" style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">Selesaikan semua materi secara berurutan untuk membuka Ujian Akhir.</p>
+            
+            <div class="d-flex justify-content-between align-items-end" style="font-size: 0.8rem; font-weight: 600;">
+                <span>Progress Belajar</span>
+                <span class="text-warning">2 / 5 Selesai (40%)</span>
+            </div>
+            <div class="progress-custom">
+                <!-- Ubah width sesuai persentase progress -->
+                <div class="progress-custom-fill" style="width: 40%;"></div>
+            </div>
+        </div>
+
+        <!-- Learning Path Timeline -->
+        <div class="timeline-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0">Daftar Modul</h6>
+                <span class="badge bg-light text-secondary border">Estimasi: 45 Menit</span>
+            </div>
+
+            <ul class="timeline" id="module-timeline">
+                {{ if gt (len .modules) 0 }}
+                    {{ range $index, $mod := .modules }}
+                    <li class="timeline-item">
+                        {{ if eq $mod.Status "mastered" }}
+                            <div class="timeline-dot completed"></div>
+                            <div class="item-card clickable border-success-subtle" onclick="goToModule({{ $mod.ID }})">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="item-number text-completed">0{{ $mod.Order }} • Selesai</div>
+                                        <div class="item-title">{{ $mod.Title }}</div>
+                                    </div>
+                                    <i class="bi bi-check-circle-fill text-completed fs-4"></i>
+                                </div>
+                            </div>
+                        {{ else if eq $mod.Status "in_progress" }}
+                            <div class="timeline-dot active"></div>
+                            <div class="item-card clickable border-primary-subtle" style="border-width: 2px;" onclick="goToModule({{ $mod.ID }})">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="item-number text-active">0{{ $mod.Order }} • Sedang Belajar</div>
+                                        <div class="item-title">{{ $mod.Title }}</div>
+                                    </div>
+                                    <i class="bi bi-play-circle-fill text-active fs-3"></i>
+                                </div>
+                            </div>
+                        {{ else if $mod.IsLocked }}
+                            <div class="timeline-dot locked"></div>
+                            <div class="item-card locked">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="item-number">0{{ $mod.Order }} • Terkunci</div>
+                                        <div class="item-title text-muted">{{ $mod.Title }}</div>
+                                    </div>
+                                    <i class="bi bi-lock-fill text-locked fs-5"></i>
+                                </div>
+                            </div>
+                        {{ else }}
+                            <!-- Not started but not locked -->
+                            <div class="timeline-dot locked" style="border-color:#02237D;"></div>
+                            <div class="item-card clickable border-primary-subtle" onclick="goToModule({{ $mod.ID }})">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="item-number text-active">0{{ $mod.Order }} • Belum Mulai</div>
+                                        <div class="item-title">{{ $mod.Title }}</div>
+                                    </div>
+                                    <i class="bi bi-play-circle text-active fs-4"></i>
+                                </div>
+                            </div>
+                        {{ end }}
+                    </li>
+                    {{ end }}
+                {{ else }}
+                    <li class="timeline-item">
+                        <div class="item-card text-center text-muted">Belum ada rute belajar.</div>
+                    </li>
+                {{ end }}
+                
+                <!-- Ujian Akhir (Exam) -->
+                <li class="timeline-item mt-4">
+                    <div class="timeline-dot exam"></div>
+                    <div class="item-card locked border-warning-subtle" id="examCard">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="item-number text-exam fw-bold"><i class="bi bi-star-fill me-1"></i> Final Stage</div>
+                                <div class="item-title">Ujian Akhir Topik</div>
+                            </div>
+                            <i class="bi bi-shield-lock-fill text-exam fs-4" id="examIcon"></i>
+                        </div>
+                    </div>
+                </li>
+
+            </ul>
+        </div>
+
+        <!-- Sticky Bottom Navbar -->
+        <div class="fixed-bottom bg-white shadow-sm d-flex justify-content-around py-2 mx-auto" style="max-width: 480px; border-top: 1px solid #eee; z-index: 1030;">
+            <div class="text-center text-brand" style="cursor: pointer;" onclick="window.location.href='/home'">
+                <i class="bi bi-grid-fill fs-5"></i>
+                <div style="font-size: 0.7rem; font-weight: 700;">Dashboard</div>
+            </div>
+            <div class="text-center text-secondary" style="cursor: pointer;" onclick="window.location.href='/flashcard'">
+                <i class="bi bi-files fs-5"></i>
+                <div style="font-size: 0.7rem; font-weight: 600;">Flashcard</div>
+            </div>
+            <div class="text-center text-secondary" style="cursor: pointer;" onclick="window.location.href='/profile'">
+                <i class="bi bi-person-circle fs-5"></i>
+                <div style="font-size: 0.7rem; font-weight: 600;">Profile</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Navigasi -->
+    <script>
+        const projectId = {{ if .project }}{{ .project.ID }}{{ else }}1{{ end }};
+        
+        // Fungsi untuk Navigasi ke Modul Pembelajaran
+        function goToModule(moduleId) {
+            // Arahkan ke halaman materi, misal: /materi?project_id=1&module_id=3
+            window.location.href = `/materi?project_id=${projectId}&module_id=${moduleId}`;
+        }
+
+        // Fungsi untuk Navigasi ke Ujian Akhir (Jika sudah terbuka)
+        function goToExam() {
+            window.location.href = `/exam?project_id=${projectId}`;
+        }
+
+        /* 
+         * Catatan Developer: 
+         * Di backend Goravel, Anda bisa melempar data variabel `.isExamUnlocked` (boolean). 
+         * Jika true, ubah tampilan #examCard menggunakan JS di bawah ini:
+         */
+        const isExamUnlocked = {{ if .isExamUnlocked }}true{{ else }}false{{ end }}; // Dynamic from backend
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            if (isExamUnlocked) {
+                const examCard = document.getElementById('examCard');
+                const examIcon = document.getElementById('examIcon');
+                
+                // Ubah kelas agar bisa di-klik
+                examCard.classList.remove('locked');
+                examCard.classList.add('clickable');
+                examCard.style.backgroundColor = '#fffbeb'; // Latar kuning soft
+                examCard.setAttribute('onclick', 'goToExam()');
+                
+                // Ubah icon kunci jadi tombol play
+                examIcon.classList.remove('bi-shield-lock-fill', 'text-exam');
+                examIcon.classList.add('bi-play-circle-fill', 'text-warning');
+            }
+        });
+    </script>
+</body>
+</html>
+{{ end }}
