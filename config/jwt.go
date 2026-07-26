@@ -6,13 +6,22 @@ import (
 
 func init() {
 	config := facades.Config()
+
+	secret := config.Env("JWT_SECRET", "")
+	if secret == "" {
+		secret = config.Env("APP_KEY", "")
+	}
+	if secret == "" {
+		secret = "studybuddy-default-secret-change-me"
+	}
+
 	config.Add("jwt", map[string]any{
 		// JWT Authentication Secret
 		//
 		// Don't forget to set this in your .env file, as it will be used to sign
 		// your tokens. A helper command is provided for this:
 		// go run . artisan jwt:secret
-		"secret": config.Env("JWT_SECRET", ""),
+		"secret": secret,
 
 		// JWT time to live
 		//
