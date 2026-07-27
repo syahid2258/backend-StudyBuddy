@@ -173,7 +173,11 @@ func reloadKeysInternal(ctx context.Context) (*keyPool, error) {
 	}
 
 	pool.keys = newKeys
-	pool.nextIdx = 0
+	if len(newKeys) > 0 && pool.nextIdx < len(newKeys) {
+		// Pertahankan giliran nextIdx saat reload agar tidak kembali ke Key 1 (0) saat tidak ada req / reload
+	} else {
+		pool.nextIdx = 0
+	}
 	pool.loaded = true
 
 	return pool, poolErr
@@ -286,7 +290,7 @@ func generateContentWithFailover(ctx context.Context, models []string, contents 
 
 			if err == nil {
 				p.mu.Lock()
-				p.nextIdx = idx // Tetap gunakan key ini untuk request berikutnya!
+				p.nextIdx = (idx + 1) % totalKeys // Lanjut ke giliran API Key berikutnya secara merata dan berurutan (Round-Robin)
 				p.mu.Unlock()
 				return result, nil
 			}
