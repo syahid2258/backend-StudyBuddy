@@ -134,6 +134,7 @@ func Web() {
 			adminRouter.Post("/api/admin/send-chat", adminController.RespondRequest)
 			adminRouter.Post("/api/admin/evaluate-active-recall", adminController.EvaluateActiveRecall)
 			adminRouter.Get("/api/admin/users", adminController.GetUsers)
+			adminRouter.Post("/api/admin/users", adminController.CreateUser)
 			adminRouter.Get("/api/admin/logs", adminController.GetLogs)
 
 			// API Key Management Routes

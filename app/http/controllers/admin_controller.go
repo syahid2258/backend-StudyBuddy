@@ -372,6 +372,60 @@ func (c *AdminController) GetUsers(ctx http.Context) http.Response {
 	})
 }
 
+// CreateUser handles POST /api/admin/users — creates a new user.
+func (c *AdminController) CreateUser(ctx http.Context) http.Response {
+	name := ctx.Request().Input("name")
+	email := ctx.Request().Input("email")
+	password := ctx.Request().Input("password")
+	role := ctx.Request().Input("role")
+
+	if name == "" || email == "" || password == "" {
+		return ctx.Response().Json(stdhttp.StatusBadRequest, http.Json{
+			"status":  "error",
+			"message": "Nama, email, dan password wajib diisi.",
+		})
+	}
+
+	if role == "" {
+		role = "user"
+	}
+
+	var existingUser models.User
+	if err := facades.Orm().Query().Where("email", email).First(&existingUser); err == nil && existingUser.ID > 0 {
+		return ctx.Response().Json(stdhttp.StatusBadRequest, http.Json{
+			"status":  "error",
+			"message": "Email sudah digunakan.",
+		})
+	}
+
+	hashedPassword, err := facades.Hash().Make(password)
+	if err != nil {
+		return ctx.Response().Json(stdhttp.StatusInternalServerError, http.Json{
+			"status":  "error",
+			"message": "Gagal mengenkripsi password.",
+		})
+	}
+
+	newUser := models.User{
+		Name:     name,
+		Email:    email,
+		Password: hashedPassword,
+		Role:     role,
+	}
+
+	if err := facades.Orm().Query().Create(&newUser); err != nil {
+		return ctx.Response().Json(stdhttp.StatusInternalServerError, http.Json{
+			"status":  "error",
+			"message": "Gagal membuat user: " + err.Error(),
+		})
+	}
+
+	return ctx.Response().Json(stdhttp.StatusCreated, http.Json{
+		"status":  "success",
+		"message": "User berhasil dibuat",
+	})
+}
+
 // GetLogs handles GET /api/admin/logs — returns recent AI activity logs.
 func (c *AdminController) GetLogs(ctx http.Context) http.Response {
 	var requests []models.AdminRequest
